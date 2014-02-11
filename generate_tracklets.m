@@ -24,13 +24,6 @@ while tracks_made < num_tracks
         last_point_in_fov = false; %Forces new tracklet to start
         %Start at first point on track, and march till the end.
         while track_index <= size(track,1)
-            if size(track,1) < track_index || size(track,2) < 2
-                debug_blah = 1;
-                keyboard;
-                keyboard
-                keyboard
-                keyboard
-            end
             %See if this point is in the FOV
             this_point_in_fov = camera_can_see(cam, track(track_index,1), ...
                                                     track(track_index,2));
@@ -42,6 +35,11 @@ while tracks_made < num_tracks
                     clear cam_tracklet_inst;
                     cam_tracklet_inst.cam_num = c;
                     cam_tracklet_inst.path = zeros(0,2);
+                    %For now, set the start time to the index in the track
+                    % relative time (e.g. starting at 0 for each track)
+                    % since for now we only consider correspondences
+                    % from the same track and the tracks never overlap.
+                    cam_tracklet_inst.first_time = track_index;
                 end
                 %Add the data to the tracklet.
                 cam_tracklet_inst.path(end+1,:) = track(track_index,:);

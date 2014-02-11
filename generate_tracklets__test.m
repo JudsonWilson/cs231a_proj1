@@ -5,8 +5,8 @@ addpath('./extlib/');
 
 %General camera field of view polygon.
 % Pointing in the x-axis direction, for an (x,y,theta)=(0,0,0)
-fov_poly.x = [0 20 20 0]
-fov_poly.y = [0 -6  6 0]
+fov_poly.x = [0 20 20 0];
+fov_poly.y = [0 -6  6 0];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Make 2 cameras
