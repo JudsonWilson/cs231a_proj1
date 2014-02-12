@@ -68,7 +68,6 @@ angle = angle + randnclip()*2/3*pi*shape_noise_factor;
 state(7:8) = randnclip() * 0.005 * speed/object_start_speed * shape_noise_factor * [cos(angle); sin(angle)];  %acceleration-dot
 
 % Time step the linear dynamical system.
-hold on;
 keepgoing = true;
 while keepgoing
     %Adds 1 unit of all derivatives to the next lowest order derivative.
