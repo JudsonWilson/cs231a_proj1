@@ -42,7 +42,7 @@ plot( [bound_box.x(1); bound_box.x(2); bound_box.x(2); bound_box.x(1); bound_box
 
 
 %Get tracklets and tracks
-[ tracklets, tracks_with_tracklets ] = generate_tracklets( cameras, 100 );
+[ tracklets, tracks_with_tracklets ] = generate_tracklets( cameras, 10, 1, 1, 1 );
 
 %Plot them
 for i=1:length(tracks_with_tracklets)
@@ -50,17 +50,17 @@ for i=1:length(tracks_with_tracklets)
     track = track_with_tracklets.track;
     %Plot track
     plot(track(:,1),track(:,2),'-g');
-    %%%plot(track(:,1),track(:,2),'.b');
+    plot(track(:,1),track(:,2),'.b');
     %Plot starting point
     plot(track(1,1),track(1,2),'ob');
     
-    %Plot tracklets
-    for j=1:length(tracklets)
-        tracklet = tracklets{j};
-        %Plot tracklet
-        plot(tracklet.path(:,1),tracklet.path(:,2),'-r');
-        %Plot tracklet starting point
-        plot(tracklet.path(1,1),tracklet.path(1,2),'om');
-    end
+end
+%Plot tracklets
+for j=1:length(tracklets)
+    tracklet = tracklets{j};
+    %Plot tracklet
+    plot(tracklet.path(:,1),tracklet.path(:,2),'-r');
+    %Plot tracklet starting point
+    plot(tracklet.path(1,1),tracklet.path(1,2),'om');
 end
 

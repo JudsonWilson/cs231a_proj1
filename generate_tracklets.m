@@ -1,4 +1,4 @@
-function [ tracklets, tracks_with_tracklets ] = generate_tracklets( cameras, num_tracks )
+function [ tracklets, tracks_with_tracklets ] = generate_tracklets( cameras, num_tracks, objects_start_speed, shape_noise_factor, measurement_noise_factor)
 %GENERATE_TRACKLETS Walk objects somewhat randomly in tracks.
 % Return the tracklets (an array per camera), as well as tracks
 % with the resulting tracklets, for plotting purposes.
@@ -15,7 +15,7 @@ tracks_with_tracklets = {};
 tracks_made = 0;
 while tracks_made < num_tracks
     %Get a new track.
-    track = generate_track(bound_box, 0, 1);
+    track = generate_track(bound_box, objects_start_speed, shape_noise_factor, measurement_noise_factor);
     track_tracklets = {};
     %Get all tracklets for each camera
     for c=1:length(cameras)

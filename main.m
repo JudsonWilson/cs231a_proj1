@@ -42,7 +42,7 @@ plot( [bound_box.x(1); bound_box.x(2); bound_box.x(2); bound_box.x(1); bound_box
 
 
 %Get tracklets and tracks
-[ tracklets, tracks_with_tracklets ] = generate_tracklets( cameras, 20 );
+[ tracklets, tracks_with_tracklets ] = generate_tracklets( cameras, 1000, 1, 1, 1 );
 
 %Plot tracks
 for i=1:length(tracks_with_tracklets)
@@ -50,7 +50,7 @@ for i=1:length(tracks_with_tracklets)
     track = track_with_tracklets.track;
     %Plot track
     plot(track(:,1),track(:,2),'-g');
-    %%%plot(track(:,1),track(:,2),'.b');
+    plot(track(:,1),track(:,2),'.b');
     %Plot starting point
     plot(track(1,1),track(1,2),'ob');
 end
@@ -59,6 +59,7 @@ for j=1:length(tracklets)
     tracklet = tracklets{j};
     %Plot tracklet
     plot(tracklet.path(:,1),tracklet.path(:,2),'-r');
+    plot(tracklet.path(:,1),tracklet.path(:,2),'.m');
     %Plot tracklet starting point
     plot(tracklet.path(1,1),tracklet.path(1,2),'om');
 end
@@ -79,6 +80,8 @@ for i=1:length(tracks_with_tracklets)
     end
 end
 
+relative_camera_position_votes = zeros(0,3);
+
 %Generate implied relative camera position/angle for each correspondence
 for i=1:length(tracklets_correspondences)
     %Get next cell array of corresponding tracklets (a correspondence)
@@ -87,26 +90,50 @@ for i=1:length(tracklets_correspondences)
     % Important: the first arg is tracklet from cam 1, second from cam 2
     [x,y,theta] = correspondence_camera_transform(correspondence_tracklet_group{1}, ...
                                     correspondence_tracklet_group{2})
-    
-    % README!! README!! README!! README!! README!! README!! README!! README!!
-    % README!! README!! README!! README!! README!! README!! README!! README!!
-    % README!! README!! README!! README!! README!! README!! README!! README!!
+	if ~isnan(x)
+        relative_camera_position_votes = [relative_camera_position_votes; x y theta];
+    end
+    end
 
-    % At this point, x,y,theta should be close to zero, becaues the
-    % camera is already in the correct place (and note the tracklets
-    % are in world coordinates, not relative coordinates!)
+%Plot the relationships
 
-    % README!! README!! README!! README!! README!! README!! README!! README!!
-    % README!! README!! README!! README!! README!! README!! README!! README!!
-    % README!! README!! README!! README!! README!! README!! README!! README!!
-    % README!! README!! README!! README!! README!! README!! README!! README!!
-end
+figure(2);
+subplot(2,2,1)
+plot(relative_camera_position_votes(:,1), relative_camera_position_votes(:,2),'o');
+hold on;
+plot(mean(relative_camera_position_votes(:,1)), mean(relative_camera_position_votes(:,2)),'xr');
+xlabel('x'); ylabel('y');
 
-%Generate implied relative camera position/angle
+subplot(2,2,2)
+plot(relative_camera_position_votes(:,2), relative_camera_position_votes(:,3),'o');
+hold on;
+plot(mean(relative_camera_position_votes(:,2)), mean(relative_camera_position_votes(:,3)),'xr');
+xlabel('y'); ylabel('\theta');
 
+subplot(2,2,3)
+plot(relative_camera_position_votes(:,3), relative_camera_position_votes(:,1),'o');
+hold on;
+plot(mean(relative_camera_position_votes(:,3)), mean(relative_camera_position_votes(:,1)),'xr');
+xlabel('\theta'); ylabel('x');
 
+subplot(2,2,4)
+plot3(relative_camera_position_votes(:,1), ...
+      relative_camera_position_votes(:,2), ...
+      relative_camera_position_votes(:,3),'o');
+hold on;
+plot3(mean(relative_camera_position_votes(:,1)), ...
+      mean(relative_camera_position_votes(:,2)), ...
+      mean(relative_camera_position_votes(:,3)),'xr');
+xlabel('x'); ylabel('y'); zlabel('theta');
 
-
-
-
-
+% Mean - this is probably where we would place the camera (0,0,0 is
+% correct)
+mean = [mean(relative_camera_position_votes(:,1)), ...
+        mean(relative_camera_position_votes(:,2)), ...
+        mean(relative_camera_position_votes(:,3))]
+%RMS Error Values (note that x,y,theta results should equal zero, because
+% camera is already in the correct place, and points are all in same 3d
+% coordinate space).
+rms_x     = rms(relative_camera_position_votes(:,1))
+rms_y     = rms(relative_camera_position_votes(:,2))
+rms_theta = rms(relative_camera_position_votes(:,3))

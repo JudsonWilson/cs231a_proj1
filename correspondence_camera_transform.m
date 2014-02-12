@@ -9,8 +9,20 @@ function [x,y,theta] = correspondence_camera_transform(tracklet1, tracklet2)
 [ x1,y1,theta1,s1, t1, ~, ~, ~, ~, ~ ] = filtered_tracklet_params( tracklet1 );
 [ x2,y2,theta2,s2, t2, ~, ~, ~, ~, ~ ] = filtered_tracklet_params( tracklet2 );
 
-% 1 - calculate average speed
-s_avg = mean([s1,s2]);
+% 1 - Filter out tracklets with only 1 point, since we cannot get an
+% angle from these. We could get a distance, but that isn't helpful
+% in the current method
+if isnan(s1) || isnan(s2)
+    x=NaN; y=NaN; theta=NaN;
+    return
+end
+%elseif isnan(s1)
+%    s_avg = s2;
+%elseif isnan(s2)
+%    s_avg = s1;
+%else
+    s_avg = mean([s1,s2]);
+%end
 
 % 2 - trace line in camera 1 (either forward or backward in time) from 
 % start/end of tracklet to the point where the end/start of the tracklet
