@@ -107,13 +107,13 @@ xlabel('x'); ylabel('y');
 subplot(2,2,2)
 plot(relative_camera_position_votes(:,2), relative_camera_position_votes(:,3),'o');
 hold on;
-plot(mean(relative_camera_position_votes(:,2)), mean(relative_camera_position_votes(:,3)),'xr');
+plot(mean(relative_camera_position_votes(:,2)), mean_angle(relative_camera_position_votes(:,3)),'xr');
 xlabel('y'); ylabel('\theta');
 
 subplot(2,2,3)
 plot(relative_camera_position_votes(:,3), relative_camera_position_votes(:,1),'o');
 hold on;
-plot(mean(relative_camera_position_votes(:,3)), mean(relative_camera_position_votes(:,1)),'xr');
+plot(mean_angle(relative_camera_position_votes(:,3)), mean(relative_camera_position_votes(:,1)),'xr');
 xlabel('\theta'); ylabel('x');
 
 subplot(2,2,4)
@@ -121,16 +121,16 @@ plot3(relative_camera_position_votes(:,1), ...
       relative_camera_position_votes(:,2), ...
       relative_camera_position_votes(:,3),'o');
 hold on;
-plot3(mean(relative_camera_position_votes(:,1)), ...
-      mean(relative_camera_position_votes(:,2)), ...
-      mean(relative_camera_position_votes(:,3)),'xr');
+plot3(mean      (relative_camera_position_votes(:,1)), ...
+      mean      (relative_camera_position_votes(:,2)), ...
+      mean_angle(relative_camera_position_votes(:,3)),'xr');
 xlabel('x'); ylabel('y'); zlabel('theta');
 
 % Mean - this is probably where we would place the camera (0,0,0 is
 % correct)
-mean = [mean(relative_camera_position_votes(:,1)), ...
-        mean(relative_camera_position_votes(:,2)), ...
-        mean(relative_camera_position_votes(:,3))]
+mean_vote = [      mean(relative_camera_position_votes(:,1)), ...
+                   mean(relative_camera_position_votes(:,2)), ...
+             mean_angle(relative_camera_position_votes(:,3))]
 %RMS Error Values (note that x,y,theta results should equal zero, because
 % camera is already in the correct place, and points are all in same 3d
 % coordinate space).
