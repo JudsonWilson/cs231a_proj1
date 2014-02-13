@@ -143,8 +143,12 @@ for i=1:length(correspondences_lists)
         if tracklets{pair_indices(1)}.cam_num ~= tracklets{pair_indices(2)}.cam_num
             %Feed them in to get the implied camera transform from cam 1 to cam 2
             % Important: the first arg is tracklet from cam 1, second from cam 2
-            [x,y,theta] = correspondence_camera_transform(tracklets{pair_indices(1)}, ...
-                                                          tracklets{pair_indices(2)});
+            transformed_tracklets_1 = transform_tracklets_world_to_camera(cameras(1), tracklets{pair_indices(1)});
+            transformed_tracklets_2 = transform_tracklets_world_to_camera(cameras(2), tracklets{pair_indices(2)});
+            [x,y,theta] = correspondence_camera_transform(transformed_tracklets_1, ...
+                                                          transformed_tracklets_2);
+            %[x,y,theta] = correspondence_camera_transform(tracklets{pair_indices(1)}, ...
+            %                                              tracklets{pair_indices(2)});
             if ~isnan(x)
                 relative_camera_position_votes = [relative_camera_position_votes; x y theta];
             end

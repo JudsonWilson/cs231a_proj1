@@ -32,14 +32,18 @@ t_elapsed = t2 - t1;
 x2_target = x1 + t_elapsed*s_avg*cos(theta1);
 y2_target = y1 + t_elapsed*s_avg*sin(theta1);
 
-% 3 - figure out the translation that puts that point 2 at the target
-
-delta_x2 = x2_target - x2;
-delta_y2 = y2_target - y2;
-
-% 4 - figure out the rotation that puts the directions in the correct
+% 3 - figure out the rotation that puts the directions in the correct
 % direction.
 delta_theta = theta1 - theta2;
+
+% 4 - Apply the rotation to the points in camera 2, such that the line is now
+% parallel but the points are now in a new location
+X2_temp = [cos(delta_theta) -sin(delta_theta); ...
+                      sin(delta_theta)  cos(delta_theta)] * [x2; y2];
+
+% 5 - figure out the translation that puts rotated point 2 at the target
+delta_x2 = x2_target - X2_temp(1);
+delta_y2 = y2_target - X2_temp(2);
 
 %Output - apply this to camera 2 to put it in the right place/angle.
 x = delta_x2;
