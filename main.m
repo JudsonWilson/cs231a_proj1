@@ -16,20 +16,20 @@ track_velocity_factor = 1;
 % Increasing this makes lines more curvy, and points will speed up and
 % slow down. 0 = straight lines, constant velocity.
 track_non_constant_factor = 1; 
-%track_non_constant_factor = 0; 
+% track_non_constant_factor = 0; 
 
 % Increasing this makes observations noisier. Observations are taken
 % from the curvy path and gaussian noise is added. 0 = no noise.
 % 1 is my usual value.
 track_observation_variance_scale = 1;
-%track_observation_variance_scale = 0;
+% track_observation_variance_scale = 0;
 
 % As set, we will see correspondences of 1 path 30% of the time,
 % two paths 40% of the time, and 3 paths 30% of the time. To never
 % have errors, set this to 1 path only [1.01 0 0]. Errors come from
 % having multiple paths that give false correspondences.
 multiple_objects_collision_percentiles = [0.3 0.7 1.01];
-%multiple_objects_collision_percentiles = [1.01 0 0];
+% multiple_objects_collision_percentiles = [1.01 0 0];
 
 
 %When the collision percentiles allow for multiple tracks at the same

@@ -15,8 +15,8 @@ track_velocity_factor = 1;
 
 % Increasing this makes lines more curvy, and points will speed up and
 % slow down. 0 = straight lines, constant velocity.
-track_non_constant_factor = 1; 
-%track_non_constant_factor = 0; 
+% track_non_constant_factor = 1; 
+track_non_constant_factor = 0; 
 
 % Increasing this makes observations noisier. Observations are taken
 % from the curvy path and gaussian noise is added. 0 = no noise.
@@ -182,19 +182,19 @@ subplot(2,2,1)
 plot(relative_camera_position_votes_12(:,1), relative_camera_position_votes_12(:,2),'o');
 hold on;
 plot(mean(relative_camera_position_votes_12(:,1)), mean(relative_camera_position_votes_12(:,2)),'xr');
-xlabel('x'); ylabel('y');
+xlabel('\theta_1'); ylabel('r');
 
 subplot(2,2,2)
 plot(relative_camera_position_votes_12(:,2), relative_camera_position_votes_12(:,3),'o');
 hold on;
 plot(mean(relative_camera_position_votes_12(:,2)), mean_angle(relative_camera_position_votes_12(:,3)),'xr');
-xlabel('y'); ylabel('\theta');
+xlabel('r'); ylabel('\theta_2');
 
 subplot(2,2,3)
 plot(relative_camera_position_votes_12(:,3), relative_camera_position_votes_12(:,1),'o');
 hold on;
 plot(mean_angle(relative_camera_position_votes_12(:,3)), mean(relative_camera_position_votes_12(:,1)),'xr');
-xlabel('\theta'); ylabel('x');
+xlabel('\theta_2'); ylabel('\theta_1');
 
 subplot(2,2,4)
 plot3(relative_camera_position_votes_12(:,1), ...
@@ -204,7 +204,7 @@ hold on;
 plot3(mean      (relative_camera_position_votes_12(:,1)), ...
       mean      (relative_camera_position_votes_12(:,2)), ...
       mean_angle(relative_camera_position_votes_12(:,3)),'xr');
-xlabel('x'); ylabel('y'); zlabel('theta');
+xlabel('\theta_1'); ylabel('r'); zlabel('\theta_2');
 
 figure(3);
 clf;
@@ -212,19 +212,19 @@ subplot(2,2,1)
 plot(relative_camera_position_votes_13(:,1), relative_camera_position_votes_13(:,2),'o');
 hold on;
 plot(mean(relative_camera_position_votes_13(:,1)), mean(relative_camera_position_votes_13(:,2)),'xr');
-xlabel('x'); ylabel('y');
+xlabel('\theta_1'); ylabel('r');
 
 subplot(2,2,2)
 plot(relative_camera_position_votes_13(:,2), relative_camera_position_votes_13(:,3),'o');
 hold on;
 plot(mean(relative_camera_position_votes_13(:,2)), mean_angle(relative_camera_position_votes_13(:,3)),'xr');
-xlabel('y'); ylabel('\theta');
+xlabel('r'); ylabel('\theta_2');
 
 subplot(2,2,3)
 plot(relative_camera_position_votes_13(:,3), relative_camera_position_votes_13(:,1),'o');
 hold on;
 plot(mean_angle(relative_camera_position_votes_13(:,3)), mean(relative_camera_position_votes_13(:,1)),'xr');
-xlabel('\theta'); ylabel('x');
+xlabel('\theta_2'); ylabel('\theta_1');
 
 subplot(2,2,4)
 plot3(relative_camera_position_votes_13(:,1), ...
@@ -234,7 +234,7 @@ hold on;
 plot3(mean      (relative_camera_position_votes_13(:,1)), ...
       mean      (relative_camera_position_votes_13(:,2)), ...
       mean_angle(relative_camera_position_votes_13(:,3)),'xr');
-xlabel('x'); ylabel('y'); zlabel('theta');
+xlabel('\theta_1'); ylabel('r'); zlabel('\theta_2');
 
 figure(4);
 clf;
@@ -242,19 +242,19 @@ subplot(2,2,1)
 plot(relative_camera_position_votes_23(:,1), relative_camera_position_votes_23(:,2),'o');
 hold on;
 plot(mean(relative_camera_position_votes_23(:,1)), mean(relative_camera_position_votes_23(:,2)),'xr');
-xlabel('x'); ylabel('y');
+xlabel('\theta_1'); ylabel('r');
 
 subplot(2,2,2)
 plot(relative_camera_position_votes_23(:,2), relative_camera_position_votes_23(:,3),'o');
 hold on;
 plot(mean(relative_camera_position_votes_23(:,2)), mean_angle(relative_camera_position_votes_23(:,3)),'xr');
-xlabel('y'); ylabel('\theta');
+xlabel('r'); ylabel('\theta_2');
 
 subplot(2,2,3)
 plot(relative_camera_position_votes_23(:,3), relative_camera_position_votes_23(:,1),'o');
 hold on;
 plot(mean_angle(relative_camera_position_votes_23(:,3)), mean(relative_camera_position_votes_23(:,1)),'xr');
-xlabel('\theta'); ylabel('x');
+xlabel('\theta_2'); ylabel('\theta_1');
 
 subplot(2,2,4)
 plot3(relative_camera_position_votes_23(:,1), ...
@@ -264,7 +264,7 @@ hold on;
 plot3(mean      (relative_camera_position_votes_23(:,1)), ...
       mean      (relative_camera_position_votes_23(:,2)), ...
       mean_angle(relative_camera_position_votes_23(:,3)),'xr');
-xlabel('x'); ylabel('y'); zlabel('theta');
+xlabel('\theta_1'); ylabel('r'); zlabel('\theta_2');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % print some basic statistics

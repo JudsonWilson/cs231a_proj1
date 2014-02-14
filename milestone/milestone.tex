@@ -106,7 +106,7 @@
 % *** GRAPHICS RELATED PACKAGES ***
 %
 \ifCLASSINFOpdf
-  % \usepackage[pdftex]{graphicx}
+   \usepackage[pdftex]{graphicx}
   % declare the path(s) where your graphic files are
   % \graphicspath{{../pdf/}{../jpeg/}}
   % and their extensions so you won't have to specify these with
@@ -116,7 +116,7 @@
   % or other class option (dvipsone, dvipdf, if not using dvips). graphicx
   % will default to the driver specified in the system graphics.cfg if no
   % driver is specified.
-  % \usepackage[dvips]{graphicx}
+   \usepackage[dvips]{graphicx}
   % declare the path(s) where your graphic files are
   % \graphicspath{{../eps/}}
   % and their extensions so you won't have to specify these with
@@ -267,6 +267,8 @@
 % *** FLOAT PACKAGES ***
 %
 %\usepackage{fixltx2e}
+\usepackage{float}
+\restylefloat{table}
 % fixltx2e, the successor to the earlier fix2col.sty, was written by
 % Frank Mittelbach and David Carlisle. This package corrects a few problems
 % in the LaTeX2e kernel, the most notable of which is that in current
@@ -389,34 +391,6 @@
 	     Judson~Wilson,
 	     Tony~Vivoli\\
 	     Mentor: Alexandre Alahi}
-%\author{Michael~Shell,~\IEEEmembership{Member,~IEEE,}
-%        John~Doe,~\IEEEmembership{Fellow,~OSA,}
-%        and~Jane~Doe,~\IEEEmembership{Life~Fellow,~IEEE}% <-this % stops a space
-%\thanks{M. Shell is with the Department
-%of Electrical and Computer Engineering, Georgia Institute of Technology, Atlanta,
-%GA, 30332 USA e-mail: (see http://www.michaelshell.org/contact.html).}% <-this % stops a space
-%\thanks{J. Doe and J. Doe are with Anonymous University.}% <-this % stops a space
-%\thanks{Manuscript received April 19, 2005; revised January 11, 2007.}}
-
-% note the % following the last \IEEEmembership and also \thanks - 
-% these prevent an unwanted space from occurring between the last author name
-% and the end of the author line. i.e., if you had this:
-% 
-% \author{....lastname \thanks{...} \thanks{...} }
-%                     ^------------^------------^----Do not want these spaces!
-%
-% a space would be appended to the last name and could cause every name on that
-% line to be shifted left slightly. This is one of those "LaTeX things". For
-% instance, "\textbf{A} \textbf{B}" will typeset as "A B" not "AB". To get
-% "AB" then you have to do: "\textbf{A}\textbf{B}"
-% \thanks is no different in this regard, so shield the last } of each \thanks
-% that ends a line with a % and do not let a space in before the next \thanks.
-% Spaces after \IEEEmembership other than the last one are OK (and needed) as
-% you are supposed to have spaces between the names. For what it is worth,
-% this is a minor point as most people would not even notice if the said evil
-% space somehow managed to creep in.
-
-
 
 % The paper headers
 %\markboth{Journal of \LaTeX\ Class Files,~Vol.~6, No.~1, January~2007}%
@@ -430,41 +404,24 @@
 % you desire.
 
 
-
-
-% If you want to put a publisher's ID mark on the page you can do it like
-% this:
-%\IEEEpubid{0000--0000/00\$00.00~\copyright~2007 IEEE}
-% Remember, if you use this you must call \IEEEpubidadjcol in the second
-% column for its text to clear the IEEEpubid mark.
-
-
-
-% use for special paper notices
-%\IEEEspecialpapernotice{(Invited Paper)}
-
-
-
-
 % make the title area
 \maketitle
 
-
-\begin{abstract}
-%\boldmath
-The abstract goes here.
-\end{abstract}
-% IEEEtran.cls defaults to using nonbold math in the Abstract.
-% This preserves the distinction between vectors and scalars. However,
-% if the journal you are submitting to favors bold math in the abstract,
-% then you can use LaTeX's standard command \boldmath at the very start
-% of the abstract to achieve this. Many IEEE journals frown on math
-% in the abstract anyway.
-
-% Note that keywords are not normally used for peerreview papers.
-\begin{IEEEkeywords}
-Network topology, tracking.
-\end{IEEEkeywords}
+%\begin{abstract}
+%%\boldmath
+%The abstract goes here.
+%\end{abstract}
+%% IEEEtran.cls defaults to using nonbold math in the Abstract.
+%% This preserves the distinction between vectors and scalars. However,
+%% if the journal you are submitting to favors bold math in the abstract,
+%% then you can use LaTeX's standard command \boldmath at the very start
+%% of the abstract to achieve this. Many IEEE journals frown on math
+%% in the abstract anyway.
+%
+%% Note that keywords are not normally used for peerreview papers.
+%\begin{IEEEkeywords}
+%Network topology, tracking.
+%\end{IEEEkeywords}
 
 
 
@@ -482,117 +439,87 @@ Network topology, tracking.
 \IEEEpeerreviewmaketitle
 
 
-
+% INTRODUCTION
 \section{Introduction}
-% The very first letter is a 2 line initial drop letter followed
-% by the rest of the first word in caps.
-% 
-% form to use if the first word consists of a single letter:
-% \IEEEPARstart{A}{demo} file is ....
-% 
-% form to use if you need the single drop letter followed by
-% normal text (unknown if ever used by IEEE):
-% \IEEEPARstart{A}{}demo file is ....
-% 
-% Some journals put the first two words in caps:
-% \IEEEPARstart{T}{his demo} file is ....
-% 
-% Here we have the typical use of a "T" for an initial drop letter
-% and "HIS" in caps to complete the first word.
-\IEEEPARstart{A}{s} digital cameras have become more economically feasible, systems of networked cameras have become more prevalent. Furthermore, the cost of computation has dropped low enough that video processing is a viable option for many applications of camera networks. Such applications include analysis of consumer patterns in marketplaces, or use in crime prevention. \\
-	\indent While the hardware is now mature and available on the market, there are still many problems to solve and areas for improvement. Calibration of such systems still remains an exhausting and expensive task. Cameras that are precalibrated and RGB-D (color and depth) equipped will soon be the norm, but this only solves half of the problem. To make real use of a network of cameras, the position and orientation of each cameras in the world must be known, at least relative to a common point. Traditionally this requires many many hours of manual work, and does not scale well as more and more cameras are added. \\
-	\indent In theory, this calibration information can be inferred from the spatial and temporal information of the scene. Existing techniques can be applied to identify moving objects within the scene from RGB-D data. In the course of this project, we endeavour to create an algorithm which will use the estimated trajectories of the objects in the scene, and through the use of statistical inference techniques and geometry, estimate the relative locations and orientations of the cameras from which the data originated.
+	\indent As the price of digital cameras has dropped, systems of networked cameras have become more prevalent. Furthermore, the cost of computation has dropped low enough that video processing is a viable option for many applications of camera networks. Such applications include analysis of consumer patterns in marketplaces, or use in crime prevention. \\
+	\indent While the hardware is now mature and available on the market, there are still many problems to solve and areas for improvement. Manual calibration of such systems still remains an exhausting and expensive task. Cameras that are precalibrated and RGB-D (color and depth) equipped will soon be the norm, but this only solves half of the problem. To make real use of a network of cameras, the position and orientation of each cameras in the world must be known, at least relative to a common frame of reference. Traditionally this requires many many hours of manual work, and does not scale well as more and more cameras are added. \\
+	\indent In theory, this calibration information can be inferred from the spatial and temporal information of the scene. Existing techniques can be applied to identify moving objects within the scene from RGB-D data. In the course of this project, we endeavour to create an algorithm which will use the estimated trajectories, or “tracklets” of the objects in the scene, combined with statistical inference techniques and geometry, to estimate the relative locations and orientations of the cameras from which the data originated.
 
 
 
-
-% An example of a floating figure using the graphicx package.
-% Note that \label must occur AFTER (or within) \caption.
-% For figures, \caption should occur after the \includegraphics.
-% Note that IEEEtran v1.7 and later has special internal code that
-% is designed to preserve the operation of \label within \caption
-% even when the captionsoff option is in effect. However, because
-% of issues like this, it may be the safest practice to put all your
-% \label just after \caption rather than within \caption{}.
-%
-% Reminder: the "draftcls" or "draftclsnofoot", not "draft", class
-% option should be used if it is desired that the figures are to be
-% displayed while in draft mode.
-%
-%\begin{figure}[!t]
-%\centering
-%\includegraphics[width=2.5in]{myfigure}
-% where an .eps filename suffix will be assumed under latex, 
-% and a .pdf suffix will be assumed for pdflatex; or what has been declared
-% via \DeclareGraphicsExtensions.
-%\caption{Simulation Results}
-%\label{fig_sim}
-%\end{figure}
-
-% Note that IEEE typically puts floats only at the top, even when this
-% results in a large percentage of a column being occupied by floats.
-
-
-% An example of a double column floating figure using two subfigures.
-% (The subfig.sty package must be loaded for this to work.)
-% The subfigure \label commands are set within each subfloat command, the
-% \label for the overall figure must come after \caption.
-% \hfil must be used as a separator to get equal spacing.
-% The subfigure.sty package works much the same way, except \subfigure is
-% used instead of \subfloat.
-%
-%\begin{figure*}[!t]
-%\centerline{\subfloat[Case I]\includegraphics[width=2.5in]{subfigcase1}%
-%\label{fig_first_case}}
-%\hfil
-%\subfloat[Case II]{\includegraphics[width=2.5in]{subfigcase2}%
-%\label{fig_second_case}}}
-%\caption{Simulation results}
-%\label{fig_sim}
-%\end{figure*}
-%
-% Note that often IEEE papers with subfigures do not employ subfigure
-% captions (using the optional argument to \subfloat), but instead will
-% reference/describe all of them (a), (b), etc., within the main caption.
-
-
-% An example of a floating table. Note that, for IEEE style tables, the 
-% \caption command should come BEFORE the table. Table text will default to
-% \footnotesize as IEEE normally uses this smaller font for tables.
-% The \label must come after \caption as always.
-%
-%\begin{table}[!t]
-%% increase table row spacing, adjust to taste
-%\renewcommand{\arraystretch}{1.3}
-% if using array.sty, it might be a good idea to tweak the value of
-% \extrarowheight as needed to properly center the text within the cells
-%\caption{An Example of a Table}
-%\label{table_example}
-%\centering
-%% Some packages, such as MDW tools, offer better commands for making tables
-%% than the plain LaTeX2e tabular which is used here.
-%\begin{tabular}{|c||c|}
-%\hline
-%One & Two\\
-%\hline
-%Three & Four\\
-%\hline
-%\end{tabular}
-%\end{table}
-
-
-% Note that IEEE does not put floats in the very first column - or typically
-% anywhere on the first page for that matter. Also, in-text middle ("here")
-% positioning is not used. Most IEEE journals use top floats exclusively.
-% Note that, LaTeX2e, unlike IEEE journals, places footnotes above bottom
-% floats. This can be corrected via the \fnbelowfloat command of the
-% stfloats package.
-
+% RELATED WORK
 \section{Related Work}
+	\indent The problem of determining relationship between cameras with non-overlapping views is not new, and there are several approaches to the problem. Other work has been done to determining the network topology of the camera system \cite{ellis2003,makris2004}. These algorithms typically estimate connectivity between cameras, in the sense of estimating transition probabilities of objects traversing a network and are observed at the camera nodes. They give little insight into the geometric relationship between the cameras. However, these network topologies may be useful in determining corresponding objects between cameras. \\
+	\indent \cite{rahimi2004} gives an algorithm to determine the relative position and rotation of cameras within a network, however it requires that a single object move through the network during a manual calibration phase. One of the goals of our algorithm is that it will be able to be calibrated with normal daily traffic in the system, and not require any manual calibration at all. \\
+	\indent To our knowledge, no paper has been published which thoroughly outlines an algorithm which can estimate the external calibration of a network of cameras without prior information or manual calibration steps.
+	
+% ALGORITHM DESCRIPTION
 \section{Algorithm}
+	\subsection{Algorithm Hypothesis}
+		\indent The underlying idea behind the algorithm is that, for the planar world case, relative camera orientations can be determined by identifying the image of a line in both cameras, which constrains the relative positions of two cameras to a line parallel to the imaged line. The position of the camera on this line is then further constrained to a point by identifying a point correspondence on the line image. \\
+		\indent While there are many ways that such a line and point could be identified; we chose to use the paths of moving objects. If an object is moving at constant speed and direction, the path will be a perfect line. If the object produces a linear tracklet in the first camera, then a speed and direction estimate can be determined. Afterwards, any observation by any camera at a later time can be extrapolated to calculate a corresponce to a specific point on this line in the first camera’s coordinate system. If a second camera observes this object, a point correspondence and a line correspondence will be known. This is enough information to determine the relative position and angles of the two cameras in the 2D floorplan. \\
+		\indent Given a sufficient number of correspondences between many cameras, the external calibration can be determined. \\
+		
+% Dataset
+\section{Dataset}
+	\indent Our dataset comes from a camera system installed in the Lausanne railway station, provided by Alexandre Alahi. The system uses RGB-D cameras to detect moving objects through the station, and a software pipeline is used to create tracklet data which describes the motion of objects through the cameras’ fields of view. The data is given in planar (x,y) coordinates for each timestep, in the coordinate system of the observing camera, as the object moves along a track. Object identity is not tracked between cameras.
+
+% RESULTS
+\section{Results}
+	\indent We ran our current algorithm on simulated data with varying path curvature and additive Gaussian noise (see Figures~\ref{curvy_paths},\ref{paths}), generating plots of the estimated camera relation for each correspondence (see Figure~\ref{point_cloud}). When we injected no noise or false correspondences, the resulting camera relations mapped to exactly the correct values. As we introduced noise, curved paths, varying velocity, and false correspondences, the resulting estimates became more diffuse. However, the data points are still clustered around the correct values. \\
+	\indent Figure~\ref{point_cloud} depicts estimates computed from tracks with little noise and few tracks per time interval, resulting in very dense clusters about the actual relative orientations of the cameras. Figure~\ref{noisy_point_cloud} shows camera relation estimates produced when multiple tracks occur per time interval, resulting in more false correspondences. There is, however, still a distinct cluster around the actual relative orientations of the cameras.
+
+	\begin{figure}
+		\centering
+		\includegraphics[width=4in]{./curvy_paths.eps}
+		\caption{\textbf{Noisy Simulation} Simulation introduces Gaussian noise in both 											speed and direction of movement across the 											world}
+		\label{curvy_paths}
+	\end{figure}
+
+	\begin{figure}
+		\centering
+		\includegraphics[width=4in]{./paths.eps}
+		\caption{\textbf{Simulated Track Map}  Simulation produces tracks across world 
+										space (green), which intersect cameras 
+										field of view (pink triangle). Data input to
+										localization algorithm is shown in pink}
+		\label{paths}
+	\end{figure}
+
+	\begin{figure}
+		\centering
+		\includegraphics[width=4in]{./point_cloud.eps}
+		\caption{\textbf{Estimated Camera Relation} The algorithm produces an estimate 
+											of the camera relation between two
+											cameras for each correspondence. 
+											The above plots show the estimates
+											for the camera relation from
+											Figure~\ref{paths}.}
+		\label{point_cloud}
+	\end{figure}
+
+%	\begin{figure}[!t]
+%		\centering
+%		\includegraphics[width=4in]{./noisy_paths.eps}
+%		\caption{Noisy Paths}
+%		\label{noisy_paths}
+%	\end{figure}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=4in]{./noisy_point_cloud.eps}
+		\caption{\textbf{Estimated Camera Relation with More False Correspondences} 
+					The estimates above are produced from tracks which produce
+					more false correspondences due to multiple tracks entering and
+					exiting the fields of view at a given timestep.}
+		\label{noisy_point_cloud}
+	\end{figure}
+
+
+% MILESTONE GOALS
 \section{Milestone Goals}
 	See Table I and II for achieved and remaining milestones.
-	\begin{table}[!t]
+	\begin{table}[H]
 		\renewcommand{\arraystretch}{1.3}
 		\caption{Milestones Achieved}
 		\label{table_example}
@@ -616,7 +543,7 @@ Network topology, tracking.
 				\hline
 			\end{tabular}
 	\end{table}
-	\begin{table}[!t]
+	\begin{table}[H]
 	\renewcommand{\arraystretch}{1.3}
 	\caption{Remaining Milestones}
 	\label{table_example_2}
@@ -641,8 +568,7 @@ Network topology, tracking.
 			\hline
 		\end{tabular}
 	\end{table}
-
-\section{Results}
+	
 \section{Conclusion}
 The conclusion goes here.
 
@@ -667,9 +593,9 @@ The conclusion goes here.
 
 % Can use something like this to put references on a page
 % by themselves when using endfloat and the captionsoff option.
-\ifCLASSOPTIONcaptionsoff
-  \newpage
-\fi
+%\ifCLASSOPTIONcaptionsoff
+%  \newpage
+%\fi
 
 
 
@@ -700,7 +626,7 @@ The conclusion goes here.
 \bibitem{knight2003}
 O. Javed, Z. Rasheed, O. Alatas, and M. Shah, \emph{KNIGHT™: a real time surveillance system for multiple and non-overlapping cameras}, in Proceedings of 2003 International Conference on Multimedia and Expo, 2003, pp. I-649.
 
-\bibitem{makris2003}
+\bibitem{ellis2003}
 T. Ellis, D. Makris, J. Black, \emph{Learning a multi-camera topology}, in Joint IEEE Workshop on Visual Surveillance and Performance Evaluation of Tracking and Surveillance (VS-PETS), 2003, pp. 165-171.
 
 \bibitem{makris2004}
@@ -713,7 +639,7 @@ A. Rahimi, B. Dunagan, and T. Darrell, \emph{Simultaneous calibration and tracki
 
 % Can be used to pull up biographies so that the bottom of the last one
 % is flush with the other column.
-%\enlargethispage{-5in}
+\enlargethispage{-5in}
 
 
 
