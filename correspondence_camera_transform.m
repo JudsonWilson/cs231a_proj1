@@ -35,6 +35,7 @@ y2_target = y1 + t_elapsed*s_avg*sin(theta1);
 % 3 - figure out the rotation that puts the directions in the correct
 % direction.
 delta_theta = theta1 - theta2;
+delta_theta = mod(delta_theta + pi, 2 * pi) - pi;
 
 % 4 - Apply the rotation to the points in camera 2, such that the line is now
 % parallel but the points are now in a new location
