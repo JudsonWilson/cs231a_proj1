@@ -445,8 +445,6 @@
 	\indent While the hardware is now mature and available on the market, there are still many problems to solve and areas for improvement. Manual calibration of such systems still remains an exhausting and expensive task. Cameras that are precalibrated and RGB-D (color and depth) equipped will soon be the norm, but this only solves half of the problem. To make real use of a network of cameras, the position and orientation of each cameras in the world must be known, at least relative to a common frame of reference. Traditionally this requires many many hours of manual work, and does not scale well as more and more cameras are added. \\
 	\indent In theory, this calibration information can be inferred from the spatial and temporal information of the scene. Existing techniques can be applied to identify moving objects within the scene from RGB-D data. In the course of this project, we endeavour to create an algorithm which will use the estimated trajectories, or “tracklets” of the objects in the scene, combined with statistical inference techniques and geometry, to estimate the relative locations and orientations of the cameras from which the data originated.
 
-
-
 % RELATED WORK
 \section{Related Work}
 	\indent The problem of determining relationship between cameras with non-overlapping views is not new, and there are several approaches to the problem. Other work has been done to determining the network topology of the camera system \cite{ellis2003,makris2004}. These algorithms typically estimate connectivity between cameras, in the sense of estimating transition probabilities of objects traversing a network and are observed at the camera nodes. They give little insight into the geometric relationship between the cameras. However, these network topologies may be useful in determining corresponding objects between cameras. \\
@@ -458,8 +456,22 @@
 	\subsection{Algorithm Hypothesis}
 		\indent The underlying idea behind the algorithm is that, for the planar world case, relative camera orientations can be determined by identifying the image of a line in both cameras, which constrains the relative positions of two cameras to a line parallel to the imaged line. The position of the camera on this line is then further constrained to a point by identifying a point correspondence on the line image. \\
 		\indent While there are many ways that such a line and point could be identified; we chose to use the paths of moving objects. If an object is moving at constant speed and direction, the path will be a perfect line. If the object produces a linear tracklet in the first camera, then a speed and direction estimate can be determined. Afterwards, any observation by any camera at a later time can be extrapolated to calculate a corresponce to a specific point on this line in the first camera’s coordinate system. If a second camera observes this object, a point correspondence and a line correspondence will be known. This is enough information to determine the relative position and angles of the two cameras in the 2D floorplan. \\
-		\indent Given a sufficient number of correspondences between many cameras, the external calibration can be determined. \\
+		\indent Given a sufficient number of correspondences between many cameras, the external calibration can be determined.
 		
+	\subsection{Algorithm Overview}
+		\indent Our algorithm first attempts to estimate the relative position and orientation of camera pairs, for each pairing independently. This requires algorithms to filter data, and identify the best estimate from noisy observations and false correspondences. This generates a distance measurement between cameras, as well as the angle between each camera and the chord between them. The set of distances between cameras is converted to a best-fit 2D position map using the MDS-MAP algorithm \cite{shang2003}. This determines both the camera coordinates, as well as the positions and relative angles of the chords between them.The camera angles are then determined using a best fit method from the independently estimated angular constraints from each camera pair.
+		
+	\subsection{Algorithm Theory and Practice}
+		\indent Real world objects, such as people and automobiles will rarely follow a straight path at a constant speed, but we model their behavior as linear with additive Gaussian noise. From each tracklet correspondence we produce a best-fit-line estimate of the line using PCA to derive an orthogonal least squares estimate. Also, a line centroid, average speed, and time-of-centroid estimate are derived. From these lines, velocities, and times, we can extrapolate a correspondence, from which we can generate an estimate of the relative camera positions in the form $(\theta_1, r, \theta_2)$. Here, r is the distance between cameras, i.e. the length of a chord between them, and $\theta_1$ and $\theta_2$ are the angles between each camera and the chord drawn between them. We refer to these parameters as a \textbf{\textit{camera-relation}} estimate. The calculation of  $(\theta_1,r,\theta_2)$ is trivial knowing the correspondence relation between a line and a point in both cameras. \\
+		\indent From many of these noisy paths we generate many noisy $(\theta_1,r,\theta_2)$ estimates. For the simple case described, we would fit a gaussian distribution to the camera position coordinates and determine the most likely coordinate. However, when we also consider cases with false correspondences, this model may not be sufficient. \\
+		\indent We are targeting a real world case where we cannot ensure that we know an object observed in one camera is the same as one observed in another. The intention is that there will be only one object in the environment being observed, and it will take a somewhat straight path through several cameras. To help ensure this case, once we begin using real data, we will filter our correspondence samples to include the time windows with the fewest number of objects observed summed over all cameras. However, there may still be more than one object, and the tracks may weave through cameras in a non-linear path, which will generate false temporospatial correspondences. This is a side effect of assuming that any object observed in two cameras in a short time period must be the same object. These extra false correspondences will manifest as false camera-relations, and we model them as noise that has very low correlation to the actual camera-relation. \\
+		\indent We expect the true correspondences to produce camera-relation parameter estimates with relatively low variance compared to those resulting from false correspondences. Therefore, inferring the identities of the true-correspondences would be achieved by identifying a high density region in the distribution, or a cluster. \\
+		\indent Separating two mixed distributions will become much more difficult as the probability of a measurement belonging to the unwanted class increases. Metaphorically, we want a high signal to noise ratio. It is clearly beneficial to reduce the number of false correspondences. As previously mentioned, the first filtering step is to choose data from time windows with the fewest number of observations within the window, which should correlate to there being very few moving objects in the environment. Other cues may be used to identify potential false correspondences, such as a difference in behaviors in different views, including speed or crowd grouping. We would expect these characteristics to change little between views. \\
+		\indent Using various techniques, we hope that a good estimate of the cluster can be produced. We are currently experimenting with histogramming methods and mixtures-of-gaussian methods to perform this task, but work is in its early stages. \\
+		\indent Once a cluster is identified, a statistical model can be used to infer the camera-relation between a given pair. An obvious estimate is the mean camera-relation coordinates $(\theta_1,r,\theta_2)$ within the cluster. \\
+		\indent This process may be repeated to estimate pairwise camera-relations between a large subset of cameras. Given the estimated distances from many camera locations, a relative positioning of all cameras can be generated. In general, enforcing the relative positions within a plane will be an overconstrained problem. The estimated distances between points will be very noisy, so we require an algorithm which will optimize point locations to preserve the planar constraint while minimizing deviation from all estimates. We will use the MDS-MAP algorithm, which essentially uses techniques from PCA to find the plane of highest variance in the data, and the variance in the remaining dimension is the orthogonal noise. This will give optimal relative planar positions between all camera positions, but will not determine their angle, or pose. \\
+		\indent Once the points are constrained, the chords between the vertices, and the angles between the chords are fixed. For any camera, the estimated camera-relation angles dictate an estimated angle between the camera and any chord between cameras (since all such chords between a camera and the other cameras are a determined constant). Thus a simple mean may be used to estimate this angle from the camera-relation estimates.
+	\subsection{Future Work}
 % Dataset
 \section{Dataset}
 	\indent Our dataset comes from a camera system installed in the Lausanne railway station, provided by Alexandre Alahi. The system uses RGB-D cameras to detect moving objects through the station, and a software pipeline is used to create tracklet data which describes the motion of objects through the cameras’ fields of view. The data is given in planar (x,y) coordinates for each timestep, in the coordinate system of the observing camera, as the object moves along a track. Object identity is not tracked between cameras.
@@ -569,10 +581,6 @@
 		\end{tabular}
 	\end{table}
 	
-\section{Conclusion}
-The conclusion goes here.
-
-
 
 
 
@@ -623,17 +631,20 @@ The conclusion goes here.
 % (used to reserve space for the reference number labels box)
 \begin{thebibliography}{1}
 
-\bibitem{knight2003}
-O. Javed, Z. Rasheed, O. Alatas, and M. Shah, \emph{KNIGHT™: a real time surveillance system for multiple and non-overlapping cameras}, in Proceedings of 2003 International Conference on Multimedia and Expo, 2003, pp. I-649.
-
 \bibitem{ellis2003}
 T. Ellis, D. Makris, J. Black, \emph{Learning a multi-camera topology}, in Joint IEEE Workshop on Visual Surveillance and Performance Evaluation of Tracking and Surveillance (VS-PETS), 2003, pp. 165-171.
+
+\bibitem{knight2003}
+O. Javed, Z. Rasheed, O. Alatas, and M. Shah, \emph{KNIGHT™: a real time surveillance system for multiple and non-overlapping cameras}, in Proceedings of 2003 International Conference on Multimedia and Expo, 2003, pp. I-649.
 
 \bibitem{makris2004}
 D. Makris, T. Ellis, J. Black, \emph{Bridging the gaps between cameras}, in Proceedings of the 2004 IEEE Computer Society Conference on Computer Vision and Pattern Recognition, 2004, pp. II-205.
 
 \bibitem{rahimi2004}
 A. Rahimi, B. Dunagan, and T. Darrell, \emph{Simultaneous calibration and tracking with a network of non-overlapping sensors}, in Proceedings of the 2004 IEEE Computer Society Conference on Computer Vision and Pattern Recognition, 2004, pp. I-187.
+
+\bibitem{shang2003}
+Y. Shang, W. Ruml, Y. Zhang, and M. Fromherz, \emph{Localization from mere connectivity}, in Proceedings of the 4th ACM international symposium on Mobile ad hoc networking \& computing, 2003, pp. 201-212
 
 \end{thebibliography}
 
