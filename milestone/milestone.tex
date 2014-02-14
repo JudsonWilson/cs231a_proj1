@@ -123,6 +123,9 @@
   % every instance of \includegraphics
   % \DeclareGraphicsExtensions{.eps}
 \fi
+
+\usepackage{epstopdf}
+
 % graphicx was written by David Carlisle and Sebastian Rahtz. It is
 % required if you want graphics, photos, etc. graphicx.sty is already
 % installed on most LaTeX systems. The latest version and documentation can
@@ -460,7 +463,7 @@
 		
 	\subsection{Algorithm Overview}
 		\indent Our algorithm first attempts to estimate the relative position and orientation of camera pairs, for each pairing independently. This requires algorithms to filter data, and identify the best estimate from noisy observations and false correspondences. This generates a distance measurement between cameras, as well as the angle between each camera and the chord between them. The set of distances between cameras is converted to a best-fit 2D position map using the MDS-MAP algorithm \cite{shang2003}. This determines both the camera coordinates, as well as the positions and relative angles of the chords between them.The camera angles are then determined using a best fit method from the independently estimated angular constraints from each camera pair.
-		
+
 	\subsection{Algorithm Theory and Practice}
 		\indent Real world objects, such as people and automobiles will rarely follow a straight path at a constant speed, but we model their behavior as linear with additive Gaussian noise. From each tracklet correspondence we produce a best-fit-line estimate of the line using PCA to derive an orthogonal least squares estimate. Also, a line centroid, average speed, and time-of-centroid estimate are derived. From these lines, velocities, and times, we can extrapolate a correspondence, from which we can generate an estimate of the relative camera positions in the form $(\theta_1, r, \theta_2)$. Here, r is the distance between cameras, i.e. the length of a chord between them, and $\theta_1$ and $\theta_2$ are the angles between each camera and the chord drawn between them. We refer to these parameters as a \textbf{\textit{camera-relation}} estimate. The calculation of  $(\theta_1,r,\theta_2)$ is trivial knowing the correspondence relation between a line and a point in both cameras. \\
 		\indent From many of these noisy paths we generate many noisy $(\theta_1,r,\theta_2)$ estimates. For the simple case described, we would fit a gaussian distribution to the camera position coordinates and determine the most likely coordinate. However, when we also consider cases with false correspondences, this model may not be sufficient. \\
@@ -469,23 +472,7 @@
 		\indent Separating two mixed distributions will become much more difficult as the probability of a measurement belonging to the unwanted class increases. Metaphorically, we want a high signal to noise ratio. It is clearly beneficial to reduce the number of false correspondences. As previously mentioned, the first filtering step is to choose data from time windows with the fewest number of observations within the window, which should correlate to there being very few moving objects in the environment. Other cues may be used to identify potential false correspondences, such as a difference in behaviors in different views, including speed or crowd grouping. We would expect these characteristics to change little between views. \\
 		\indent Using various techniques, we hope that a good estimate of the cluster can be produced. We are currently experimenting with histogramming methods and mixtures-of-gaussian methods to perform this task, but work is in its early stages. \\
 		\indent Once a cluster is identified, a statistical model can be used to infer the camera-relation between a given pair. An obvious estimate is the mean camera-relation coordinates $(\theta_1,r,\theta_2)$ within the cluster. \\
-		\indent This process may be repeated to estimate pairwise camera-relations between a large subset of cameras. Given the estimated distances from many camera locations, a relative positioning of all cameras can be generated. In general, enforcing the relative positions within a plane will be an overconstrained problem. The estimated distances between points will be very noisy, so we require an algorithm which will optimize point locations to preserve the planar constraint while minimizing deviation from all estimates. We will use the MDS-MAP algorithm, which essentially uses techniques from PCA to find the plane of highest variance in the data, and the variance in the remaining dimension is the orthogonal noise. This will give optimal relative planar positions between all camera positions, but will not determine their angle, or pose. \\
-		\indent Once the points are constrained, the chords between the vertices, and the angles between the chords are fixed. For any camera, the estimated camera-relation angles dictate an estimated angle between the camera and any chord between cameras (since all such chords between a camera and the other cameras are a determined constant). Thus a simple mean may be used to estimate this angle from the camera-relation estimates.
-		
-	\subsection{Future Work}
-		\indent 	As mentioned in the discussion of the algorithm, we have several portions of the project underway. We are currently investigating clustering algorithms, and will implement MDS-MAP shortly. Upon completing this step we will have an estimate of the full orientation map for all of the cameras. \\
-		\indent We also need to start using real data. The dataset is quite large, and the filtering steps described above will be somewhat time consuming. For example, we need to first determine time windows with few visible objects, to reduce false correspondences. This is a clear next step. We hope to first experiment with the simplest subsets of camera views, modify the algorithm as needed, and scale up to more views or harder situations. During the process and after completion we will evaluate performance compared to the ground truth. We may find that we need to use more elaborate cues to reduce the number of noisy or false correspondences, which will incur further algorithmic filtering steps. \\
-		\indent It should also be noted that the algorithm given above treats the global optimization problem as a series of smaller optimization problems, and will likely not reach a global optimal camera configuration given the tracklets. We hope that we can find a tractable method to increase the scope of, and reduce the number of the optimization steps, to yield a better optimum.
-	
-% Dataset
-\section{Dataset}
-	\indent Our dataset comes from a camera system installed in the Lausanne railway station, provided by Alexandre Alahi. The system uses RGB-D cameras to detect moving objects through the station, and a software pipeline is used to create tracklet data which describes the motion of objects through the cameras’ fields of view. The data is given in planar (x,y) coordinates for each timestep, in the coordinate system of the observing camera, as the object moves along a track. Object identity is not tracked between cameras.
-
-% RESULTS
-\section{Results}
-	\indent We ran our current algorithm on simulated data with varying path curvature and additive Gaussian noise (see Figures~\ref{curvy_paths},\ref{paths}), generating plots of the estimated camera relation for each correspondence (see Figure~\ref{point_cloud}). When we injected no noise or false correspondences, the resulting camera relations mapped to exactly the correct values. As we introduced noise, curved paths, varying velocity, and false correspondences, the resulting estimates became more diffuse. However, the data points are still clustered around the correct values. \\
-	\indent Figure~\ref{point_cloud} depicts estimates computed from tracks with little noise and few tracks per time interval, resulting in very dense clusters about the actual relative orientations of the cameras. Figure~\ref{noisy_point_cloud} shows camera relation estimates produced when multiple tracks occur per time interval, resulting in more false correspondences. There is, however, still a distinct cluster around the actual relative orientations of the cameras.
-
+%Placed here to get on the correct page, but belong with results section.
 	\begin{figure}
 		\centering
 		\includegraphics[width=4in]{./curvy_paths.eps}
@@ -502,6 +489,8 @@
 										localization algorithm is shown in pink}
 		\label{paths}
 	\end{figure}
+		\indent This process may be repeated to estimate pairwise camera-relations between a large subset of cameras. Given the estimated distances from many camera locations, a relative positioning of all cameras can be generated. In general, enforcing the relative positions within a plane will be an overconstrained problem. The estimated distances between points will be very noisy, so we require an algorithm which will optimize point locations to preserve the planar constraint while minimizing deviation from all estimates. We will use the MDS-MAP algorithm, which essentially uses techniques from PCA to find the plane of highest variance in the data, and the variance in the remaining dimension is the orthogonal noise. This will give optimal relative planar positions between all camera positions, but will not determine their angle, or pose. \\
+		\indent Once the points are constrained, the chords between the vertices, and the angles between the chords are fixed. For any camera, the estimated camera-relation angles dictate an estimated angle between the camera and any chord between cameras (since all such chords between a camera and the other cameras are a determined constant). Thus a simple mean may be used to estimate this angle from the camera-relation estimates.
 
 	\begin{figure}
 		\centering
@@ -522,7 +511,7 @@
 %		\label{noisy_paths}
 %	\end{figure}
 	
-	\begin{figure}[]
+	\begin{figure}
 		\centering
 		\includegraphics[width=4in]{./noisy_point_cloud.eps}
 		\caption{\textbf{Estimated Camera Relation with More False Correspondences} 
@@ -531,62 +520,29 @@
 					exiting the fields of view at a given timestep.}
 		\label{noisy_point_cloud}
 	\end{figure}
+		
+	\subsection{Future Work}
+		\indent 	As mentioned in the discussion of the algorithm, we have several portions of the project underway. We are currently investigating clustering algorithms, and will implement MDS-MAP shortly. Upon completing this step we will have an estimate of the full orientation map for all of the cameras. \\
+		\indent We also need to start using real data. The dataset is quite large, and the filtering steps described above will be somewhat time consuming. For example, we need to first determine time windows with few visible objects, to reduce false correspondences. This is a clear next step. We hope to first experiment with the simplest subsets of camera views, modify the algorithm as needed, and scale up to more views or harder situations. During the process and after completion we will evaluate performance compared to the ground truth. We may find that we need to use more elaborate cues to reduce the number of noisy or false correspondences, which will incur further algorithmic filtering steps. \\
+		\indent It should also be noted that the algorithm given above treats the global optimization problem as a series of smaller optimization problems, and will likely not reach a global optimal camera configuration given the tracklets. We hope that we can find a tractable method to increase the scope of, and reduce the number of the optimization steps, to yield a better optimum.
+	
+% Dataset
+\section{Dataset}
+	\indent Our dataset comes from a camera system installed in the Lausanne railway station, provided by Alexandre Alahi. The system uses RGB-D cameras to detect moving objects through the station, and a software pipeline is used to create tracklet data which describes the motion of objects through the cameras’ fields of view. The data is given in planar (x,y) coordinates for each timestep, in the coordinate system of the observing camera, as the object moves along a track. Object identity is not tracked between cameras.
+
+% RESULTS
+\section{Results}
+	\indent We ran our current algorithm on simulated data with varying path curvature and additive Gaussian noise (see Figures~\ref{curvy_paths},\ref{paths}), generating plots of the estimated camera relation for each correspondence (see Figure~\ref{point_cloud}). When we injected no noise or false correspondences, the resulting camera relations mapped to exactly the correct values. As we introduced noise, curved paths, varying velocity, and false correspondences, the resulting estimates became more diffuse. However, the data points are still clustered around the correct values. \\
+	\indent Figure~\ref{point_cloud} depicts estimates computed from tracks with little noise and few tracks per time interval, resulting in very dense clusters about the actual relative orientations of the cameras. Figure~\ref{noisy_point_cloud} shows camera relation estimates produced when multiple tracks occur per time interval, resulting in more false correspondences. There is, however, still a distinct cluster around the actual relative orientations of the cameras.
+
+
+
 
 
 % MILESTONE GOALS
 \section{Milestone Goals}
 	See Table I and II for achieved and remaining milestones.
-	\begin{table}[]
-		\renewcommand{\arraystretch}{1.3}
-		\caption{Milestones Achieved}
-		\label{table_example}
-		\centering
-			\begin{tabular}{l|l}
-				\hline
-				\bfseries Week & \bfseries Milestone\\
-				\hline
-				1/26-2/1 & - Determine Project Topic\\
-						 & - Write Project Proposal\\
-						 & \textbf{Thurs 1/30 - Proposal Due}\\
-				\hline
-				2/2-2/8 & - Literature Survey\\
-					       & - Familiarize with Data Set\\
-					       & - Begin Algorithm Dev. - Toy Problem\\
-				\hline
-				2/9-2/15 & - Finish Toy Problem\\
-						 & - Algorithm Dev. - Handpicked Data\\
-						 & - Write Milestone Progress Report\\
-						 & \textbf{Thurs 2/13 - Milestone Progress Due}\\
-				\hline
-			\end{tabular}
-	\end{table}
-	\begin{table}[]
-	\renewcommand{\arraystretch}{1.3}
-	\caption{Remaining Milestones}
-	\label{table_example_2}
-	\centering
-		\begin{tabular}{l|l}
-			\hline
-			\bfseries Week & \bfseries Milestone\\
-			\hline
-			2/16-2/22 & - Implement algorightm to generate correspondences \\
-					   & - Incorporate MDS-MAP \\
-					   & - Algorithm Dev. - Continue with Handpicked Data\\
-					   & - Expand Dataset, Test, Develop\\
-			\hline
-			2/23-3/1 & - Expand Dataset, Test, Develop\\
-			\hline
-			3/2-3/8 & - Measure Performance with Fewer Cameras\\
-			\hline
-			3/9-3/15 & - Produce Graphical Demo of Results\\
-					 & \textbf{Tues 3/11 - Project Presentations (I)}\\
-					 & \textbf{Tues 3/11 - Project Presentations (I)}\\
-			\hline
-			3/16-3/19 & - Write Final Report\\
-					   & \textbf{Wed 3/19 - Final Report Due}\\
-			\hline
-		\end{tabular}
-	\end{table}
+
 	
 
 
@@ -655,9 +611,66 @@ Y. Shang, W. Ruml, Y. Zhang, and M. Fromherz, \emph{Localization from mere conne
 
 \end{thebibliography}
 
+%\vspace{10cm}
+\newpage
+	\begin{table}[H]
+		\renewcommand{\arraystretch}{1.3}
+		\caption{Milestones Achieved}
+		\label{table_example}
+		\centering
+			\begin{tabular}{l|l}
+				\hline
+				\bfseries Week & \bfseries Milestone\\
+				\hline
+				1/26-2/1 & - Determine Project Topic\\
+						 & - Write Project Proposal\\
+						 & \textbf{Thurs 1/30 - Proposal Due}\\
+				\hline
+				2/2-2/8 & - Literature Survey\\
+					       & - Familiarize with Data Set\\
+					       & - Begin Algorithm Dev. - Toy Problem\\
+				\hline
+				2/9-2/15 & - Finish Toy Problem\\
+						 & - Algorithm Dev. - Handpicked Data\\
+						 & - Write Milestone Progress Report\\
+						 & \textbf{Thurs 2/13 - Milestone Progress Due}\\
+				\hline
+			\end{tabular}
+	\end{table}
+	\begin{table}[H]
+	\renewcommand{\arraystretch}{1.3}
+	\caption{Remaining Milestones}
+	\label{table_example_2}
+	\centering
+		\begin{tabular}{l|l}
+			\hline
+			\bfseries Week & \bfseries Milestone\\
+			\hline
+			2/16-2/22 & - Implement algorightm to generate correspondences \\
+					   & - Incorporate MDS-MAP \\
+					   & - Algorithm Dev. - Continue with Handpicked Data\\
+					   & - Expand Dataset, Test, Develop\\
+			\hline
+			2/23-3/1 & - Expand Dataset, Test, Develop\\
+			\hline
+			3/2-3/8 & - Measure Performance with Fewer Cameras\\
+			\hline
+			3/9-3/15 & - Produce Graphical Demo of Results\\
+					 & \textbf{Tues 3/11 - Project Presentations (I)}\\
+					 & \textbf{Tues 3/11 - Project Presentations (I)}\\
+			\hline
+			3/16-3/19 & - Write Final Report\\
+					   & \textbf{Wed 3/19 - Final Report Due}\\
+			\hline
+		\end{tabular}
+	\end{table}
+
 % Can be used to pull up biographies so that the bottom of the last one
 % is flush with the other column.
-\enlargethispage{-5in}
+%\enlargethispage{-10in}
+
+
+
 
 
 
