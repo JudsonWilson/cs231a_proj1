@@ -145,12 +145,15 @@ for i=1:length(correspondences_lists)
             % Important: the first arg is tracklet from cam 1, second from cam 2
             transformed_tracklets_1 = transform_tracklets_world_to_camera(cameras(1), tracklets{pair_indices(1)});
             transformed_tracklets_2 = transform_tracklets_world_to_camera(cameras(2), tracklets{pair_indices(2)});
-            [x,y,theta] = correspondence_camera_transform(transformed_tracklets_1, ...
+            [x,y,theta2] = correspondence_camera_transform(transformed_tracklets_1, ...
                                                           transformed_tracklets_2);
+            r = norm([x y]);
+            theta1 = -atan2(y, x);
+            
             %[x,y,theta] = correspondence_camera_transform(tracklets{pair_indices(1)}, ...
             %                                              tracklets{pair_indices(2)});
             if ~isnan(x)
-                relative_camera_position_votes = [relative_camera_position_votes; x y theta];
+                relative_camera_position_votes = [relative_camera_position_votes; theta1 r theta2];
             end
         end
     end
@@ -167,19 +170,19 @@ subplot(2,2,1)
 plot(relative_camera_position_votes(:,1), relative_camera_position_votes(:,2),'o');
 hold on;
 plot(mean(relative_camera_position_votes(:,1)), mean(relative_camera_position_votes(:,2)),'xr');
-xlabel('x'); ylabel('y');
+xlabel('\theta_1'); ylabel('r');
 
 subplot(2,2,2)
 plot(relative_camera_position_votes(:,2), relative_camera_position_votes(:,3),'o');
 hold on;
 plot(mean(relative_camera_position_votes(:,2)), mean_angle(relative_camera_position_votes(:,3)),'xr');
-xlabel('y'); ylabel('\theta');
+xlabel('r'); ylabel('\theta_2');
 
 subplot(2,2,3)
 plot(relative_camera_position_votes(:,3), relative_camera_position_votes(:,1),'o');
 hold on;
 plot(mean_angle(relative_camera_position_votes(:,3)), mean(relative_camera_position_votes(:,1)),'xr');
-xlabel('\theta'); ylabel('x');
+xlabel('\theta_2'); ylabel('\theta_1');
 
 subplot(2,2,4)
 plot3(relative_camera_position_votes(:,1), ...
@@ -189,7 +192,7 @@ hold on;
 plot3(mean      (relative_camera_position_votes(:,1)), ...
       mean      (relative_camera_position_votes(:,2)), ...
       mean_angle(relative_camera_position_votes(:,3)),'xr');
-xlabel('x'); ylabel('y'); zlabel('theta');
+xlabel('\theta_1'); ylabel('r'); zlabel('\theta_2');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % print some basic statistics
