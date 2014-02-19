@@ -6,7 +6,7 @@ clear; clc;
 
 %Set this to 1 to see what happens with one set of correspondences. Set
 % to 100-1000 to start seeing statistically meaningful results.
-number_of_correspondences = 100;
+number_of_correspondences = 1000;
 %number_of_correspondences = 10;
 
 %This is sort of "starting point" for track velocity, probably
@@ -173,23 +173,37 @@ for i=1:length(correspondences_lists)
 end    
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Calculate cluster centers
+% Calculate cluster centers for all camera pairs (except self-pairs)
+% - store in a matrix, like a graph.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 estimates_r      = inf*ones(length(cameras));
 estimates_theta1 = inf*ones(length(cameras));
 estimates_theta2 = inf*ones(length(cameras));
+%theta2as1 gives the angle for using theta2 as a theta1 when doing the
+% measurement in the frame of the second camera instead of the first
+% The reason i that theta1 and theta2 are measured relative to the ray
+% from camera 1 to camera 2, so camera 1 is an "inner" angle, and
+% theta 2 is the "outer" angle.  So, theta2as1 = -(pi - theta2).
+% TODO FIXME: should we just make this symmetric instead?
+estimates_theta2as1 = inf*ones(length(cameras));
 for i=1:length(cameras)
     estimates_r(i,i) = 0;
     estimates_theta1(i,i) = 0; %meaningless?
     estimates_theta2(i,i) = 0; %meaningless?
+    estimates_theta2as1(i,i) = 0; %meaningless?
     for j=(i+1):length(cameras)
         e = estimate_parameters_2(all_camera_relation_votes{i,j},200,1);
         estimates_theta1(i,j) = e(1);
         estimates_r     (i,j) = e(2);
         estimates_theta2(i,j) = e(3);
+        estimates_theta2as1(i,j) = -(pi - e(3));
     end
 end
-
+%Make the non-triangular versions of the matrices
+% - r is symmetric
+% - bottom triangle of theta1 is actually theta2as1 (see above).
+estimates_r              = min(cat(3,      estimates_r,         estimates_r'),[],3);
+estimates_theta_combined = min(cat(3, estimates_theta1, estimates_theta2as1'),[],3);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plot the Camera Relation Votes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -239,6 +253,48 @@ end
 %Plot the estimated locations, rotated and shifted to align with the
 %original locations, for display purposes
 plot(estimated_locations(:,1), estimated_locations(:,2),'bd');
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Angle Estimation Step
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%Calculate all angles between lines in the MDS result structure.
+structure_angles = zeros(length(cameras));
+for i=1:length(cameras)
+    for j=1:length(cameras)
+        if i==j; continue; end;
+        delta = estimated_locations(j,:) - estimated_locations(i,:);
+        structure_angles(i,j) = atan2(delta(2),delta(1));
+    end
+end
+
+%For each camera, find the mean angle relative to x-axis. This is the
+% absolute camera angle in world coordinates.
+for c1=1:length(cameras)
+   votes = [];
+   for c2=1:length(cameras)
+       if c2==c1; continue; end;
+       votes(end+1) = estimates_theta_combined(c1,c2) + structure_angles(c1,c2);
+   end
+   estimated_angles(c1) = mean_angle(votes);
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Plot cameras at new locations and angles
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+for c=1:length(cameras)
+    camera.fov_poly_rel = fov_poly;
+    camera.calib.x = estimated_locations(c,1);
+    camera.calib.y = estimated_locations(c,2);
+    camera.calib.theta = estimated_angles(c);
+    estimated_cameras(c) = camera_put_in_world(camera);
+end
+
+% Show the estimated cameras
+for c = 1:length(estimated_cameras)
+    plot_poly(estimated_cameras(c).gen.fov_poly_world);
+end
 
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
