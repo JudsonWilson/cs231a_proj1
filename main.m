@@ -39,6 +39,10 @@ multiple_objects_collision_percentiles = [0.3 0.7 1.01];
 % mostly single camera views.
 multiple_correspondence_percentage_single_tracklets = 0.3;
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Include Paths
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+addpath('./lib/mds_map/');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Make Cameras
@@ -194,6 +198,47 @@ end
 figure(2); clf;
 make_plots_camera_relation_votes    (all_camera_relation_votes{1,2});
 make_plots_camera_relation_estimates(estimates_theta1(1,2), estimates_r(1,2), estimates_theta2(1,2));
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% MDS-Map Step
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+estimated_locations = mds_map(estimates_r);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Plot result
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+figure(3); clf; hold on;
+
+% Show the cameras
+for c = 1:length(cameras)
+    plot_poly(cameras(c).gen.fov_poly_world);
+end
+axis equal;
+
+%Plot a bound-box
+bound_box = cameras_bound_box(cameras);
+plot( [bound_box.x(1); bound_box.x(2); bound_box.x(2); bound_box.x(1); bound_box.x(1)], ...
+      [bound_box.y(1); bound_box.y(1); bound_box.y(2); bound_box.y(2); bound_box.y(1)], ...
+      'r');
+
+% We want to line up the estimated locations as well as we can with the
+% actual locations, for display purposes - apply a euclidian transform.
+
+%come up with camera coodinates
+c_locations = -ones(length(cameras),2);
+for c=1:length(cameras)
+    c_locations(c,1) = cameras(c).calib.x;
+    c_locations(c,2) = cameras(c).calib.y;
+end
+
+%Use the procrustes transform to get the best alignment without scaling
+[~, estimated_locations] = procrustes(c_locations, estimated_locations,'scaling',false);
+  
+%Plot the estimated locations, rotated and shifted to align with the
+%original locations, for display purposes
+plot(estimated_locations(:,1), estimated_locations(:,2),'bd');
 
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

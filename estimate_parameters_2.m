@@ -27,6 +27,7 @@ angular_flag = [1,0,1]; %Says that theta1 and theta2 are angles, not linear
 for i=1:3
     % Bin range
     dx = range(camera_relation_votes(:,i)/num_bins);
+    dx = max(dx,0.001); %Put in a reasonable floor so the math doesn't blow up
     % Take histogram
     [x_bins, x_bin_centers] = hist(camera_relation_votes(:,i),num_bins);
     % Blur histogram - do differently for r than for the theta1,theta2
