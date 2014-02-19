@@ -40,36 +40,39 @@ multiple_objects_collision_percentiles = [0.3 0.7 1.01];
 multiple_correspondence_percentage_single_tracklets = 0.3;
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Make Cameras
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %General camera field of view polygon.
 % Pointing in the x-axis direction, for an (x,y,theta)=(0,0,0)
 fov_poly.x = [0 20 20 0];
 fov_poly.y = [0 -6  6 0];
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Make 2 cameras
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+camparams = [  0,   0,          0; %Keep this at zero for easy alignment of results.
+              30,  20, -pi*40/100;
+             -20, -10,  pi*10/100;
+               5,  15,  pi*70/100]
+for c=1:size(camparams,1)
+    camera.fov_poly_rel = fov_poly;
+    camera.calib.x = camparams(c,1);
+    camera.calib.y = camparams(c,2);
+    camera.calib.theta = camparams(c,3);
+    cameras(c) = camera_put_in_world(camera);
+end
 
-%Camera 1
-camera.fov_poly_rel = fov_poly;
-camera.calib.x = 15;
-camera.calib.y = -5;
-camera.calib.theta = pi/4; %45 degrees
-camera = camera_put_in_world(camera);
-cameras(1) = camera;
-%Camera 2
-camera.calib.x = 50;
-camera.calib.y = 20;
-camera.calib.theta = pi*140/100; 
-camera = camera_put_in_world(camera);
-cameras(2) = camera;
-
-% Show the two cameras
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Start making tracklets / making plot of them
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 figure(1);
 clf;
-plot_poly(cameras(1).gen.fov_poly_world);
 hold on;
-plot_poly(cameras(2).gen.fov_poly_world);
+
+% Show the two cameras
+for c = 1:length(cameras)
+    plot_poly(cameras(c).gen.fov_poly_world);
+end
 axis equal;
 
 %Plot a bound-box
@@ -77,7 +80,6 @@ bound_box = cameras_bound_box(cameras);
 plot( [bound_box.x(1); bound_box.x(2); bound_box.x(2); bound_box.x(1); bound_box.x(1)], ...
       [bound_box.y(1); bound_box.y(1); bound_box.y(2); bound_box.y(2); bound_box.y(1)], ...
       'r');
-
 
 %Get tracklets and tracks
 [ tracklets, correspondences_lists, tracks_with_tracklets ] ...
@@ -124,23 +126,33 @@ relative_camera_position_votes = zeros(0,3);
 % timestep at a time.
 
 
+%This will store lists of camera relation votes for every pairing
+%of cameras. Self-pairings should be empty. Array should be filled 
+%upper triangular - i.e. always pair the cameras lowest index to the
+% higher index, i.e. c2->c5, NOT c5->c2.
+all_camera_relation_votes = cell(length(cameras), length(cameras));
+
 % Loop through all correspondences. Each iteration of this loop processes
 % a list of tracklet correspondences that all happened in a short time
 % window.
 for i=1:length(correspondences_lists)
+    %Correspondences for this time window
     correspondences_list_now = correspondences_lists{i};
     
-    %We will do every pair of tracklets in this correspondence list
+    %We will do every pairing of tracklets in this correspondence list,
+    %as long as they are from different cameras.
     correspondence_pairs = nchoosek(correspondences_list_now, 2);
     for p=1:size(correspondence_pairs,1)
         pair_indices = correspondence_pairs(p,:);
         
         %We want the lower number camera first. Swap pair if need be.
-        [~,i] = sort([tracklets{pair_indices(1)}.cam_num, tracklets{pair_indices(2)}.cam_num], 'ascend')
+        [~,i] = sort([tracklets{pair_indices(1)}.cam_num, tracklets{pair_indices(2)}.cam_num], 'ascend');
         pair_indices = pair_indices(i);
         
         %Do this pair now - if from different cameras:
-        if tracklets{pair_indices(1)}.cam_num ~= tracklets{pair_indices(2)}.cam_num
+        c1 = tracklets{pair_indices(1)}.cam_num;
+        c2 = tracklets{pair_indices(2)}.cam_num;
+        if c1 ~= c2
             %Feed them in to get the implied camera transform from cam 1 to cam 2
             % Important: the first arg is tracklet from cam 1, second from cam 2
             transformed_tracklets_1 = transform_tracklets_world_to_camera(cameras(1), tracklets{pair_indices(1)});
@@ -150,10 +162,10 @@ for i=1:length(correspondences_lists)
             r = norm([x y]);
             theta1 = -atan2(y, x);
             
-            %[x,y,theta] = correspondence_camera_transform(tracklets{pair_indices(1)}, ...
-            %                                              tracklets{pair_indices(2)});
+%            implied_camera_relations{c1,c2} = [implied_camera_relations{c1,c2}; theta1 r theta2];
+            
             if ~isnan(x)
-                relative_camera_position_votes = [relative_camera_position_votes; theta1 r theta2];
+                all_camera_relation_votes{c1,c2} = [all_camera_relation_votes{c1,c2}; theta1 r theta2];
             end
         end
     end
@@ -161,52 +173,28 @@ end
     
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Plot the relationships
+% Plot the Camera Relation Votes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-figure(2);
-clf;
-subplot(2,2,1)
-plot(relative_camera_position_votes(:,1), relative_camera_position_votes(:,2),'o');
-hold on;
-plot(mean(relative_camera_position_votes(:,1)), mean(relative_camera_position_votes(:,2)),'xr');
-xlabel('\theta_1'); ylabel('r');
+%Plot relationship votes from camera 1 to camera 2
+figure(2); clf;
+make_plots_camera_relation_votes(all_camera_relation_votes{1,2});
 
-subplot(2,2,2)
-plot(relative_camera_position_votes(:,2), relative_camera_position_votes(:,3),'o');
-hold on;
-plot(mean(relative_camera_position_votes(:,2)), mean_angle(relative_camera_position_votes(:,3)),'xr');
-xlabel('r'); ylabel('\theta_2');
-
-subplot(2,2,3)
-plot(relative_camera_position_votes(:,3), relative_camera_position_votes(:,1),'o');
-hold on;
-plot(mean_angle(relative_camera_position_votes(:,3)), mean(relative_camera_position_votes(:,1)),'xr');
-xlabel('\theta_2'); ylabel('\theta_1');
-
-subplot(2,2,4)
-plot3(relative_camera_position_votes(:,1), ...
-      relative_camera_position_votes(:,2), ...
-      relative_camera_position_votes(:,3),'o');
-hold on;
-plot3(mean      (relative_camera_position_votes(:,1)), ...
-      mean      (relative_camera_position_votes(:,2)), ...
-      mean_angle(relative_camera_position_votes(:,3)),'xr');
-xlabel('\theta_1'); ylabel('r'); zlabel('\theta_2');
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% print some basic statistics
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-% Mean - this is probably where we would place the camera (0,0,0 is
-% correct)
-mean_vote = [      mean(relative_camera_position_votes(:,1)), ...
-                   mean(relative_camera_position_votes(:,2)), ...
-             mean_angle(relative_camera_position_votes(:,3))]
-%RMS Error Values (note that x,y,theta results should equal zero, because
-% camera is already in the correct place, and points are all in same 3d
-% coordinate space).
-rms_x     = rms(relative_camera_position_votes(:,1))
-rms_y     = rms(relative_camera_position_votes(:,2))
-rms_theta = rms(relative_camera_position_votes(:,3))
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % print some basic statistics
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+% relative_camera_position_votes = implied_camera_relations{1,2};
+% 
+% 
+% % Mean - this is probably where we would place the camera (0,0,0 is
+% % correct)
+% mean_vote = [      mean(relative_camera_position_votes(:,1)), ...
+%                    mean(relative_camera_position_votes(:,2)), ...
+%              mean_angle(relative_camera_position_votes(:,3))]
+% %RMS Error Values (note that x,y,theta results should equal zero, because
+% % camera is already in the correct place, and points are all in same 3d
+% % coordinate space).
+% rms_x     = rms(relative_camera_position_votes(:,1))
+% rms_y     = rms(relative_camera_position_votes(:,2))
+% rms_theta = rms(relative_camera_position_votes(:,3))
