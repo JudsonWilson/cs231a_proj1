@@ -168,14 +168,33 @@ for i=1:length(correspondences_lists)
     end
 end    
     
-    
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Calculate cluster centers
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+estimates_r      = inf*ones(length(cameras));
+estimates_theta1 = inf*ones(length(cameras));
+estimates_theta2 = inf*ones(length(cameras));
+for i=1:length(cameras)
+    estimates_r(i,i) = 0;
+    estimates_theta1(i,i) = 0; %meaningless?
+    estimates_theta2(i,i) = 0; %meaningless?
+    for j=(i+1):length(cameras)
+        e = estimate_parameters_2(all_camera_relation_votes{i,j},200,1);
+        estimates_theta1(i,j) = e(1);
+        estimates_r     (i,j) = e(2);
+        estimates_theta2(i,j) = e(3);
+    end
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plot the Camera Relation Votes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %Plot relationship votes from camera 1 to camera 2
 figure(2); clf;
-make_plots_camera_relation_votes(all_camera_relation_votes{1,2});
+make_plots_camera_relation_votes    (all_camera_relation_votes{1,2});
+make_plots_camera_relation_estimates(estimates_theta1(1,2), estimates_r(1,2), estimates_theta2(1,2));
+
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % print some basic statistics
