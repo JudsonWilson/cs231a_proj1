@@ -82,32 +82,34 @@ plot( [bound_box.x(1); bound_box.x(2); bound_box.x(2); bound_box.x(1); bound_box
       'r');
 
 %Get tracklets and tracks
-[ tracklets, correspondences_lists, tracks_with_tracklets ] ...
+[ tracklets_cam_coords, correspondences_lists, tracks_with_tracklets_world_coords ] ...
     = generate_tracklets_advanced( cameras, number_of_correspondences, ...
        track_velocity_factor, track_non_constant_factor, ...
        track_observation_variance_scale, ...
        multiple_objects_collision_percentiles, ...
        multiple_correspondence_percentage_single_tracklets );
 
-%Plot tracks
-for i=1:length(tracks_with_tracklets)
-    track_with_tracklets = tracks_with_tracklets{i};
+%Plot tracks and tracklets
+for i=1:length(tracks_with_tracklets_world_coords)
+    track_with_tracklets = tracks_with_tracklets_world_coords{i};
     track = track_with_tracklets.track;
+    tracklets = track_with_tracklets.tracklets;
     %Plot track
     plot(track(:,1),track(:,2),'-g');
     plot(track(:,1),track(:,2),'.b');
     %Plot starting point
     plot(track(1,1),track(1,2),'ob');
+    %Plot tracklets associated with track
+    for j=1:length(tracklets)
+        tracklet = tracklets{j};
+        %Plot tracklet
+        plot(tracklet.path(:,1),tracklet.path(:,2),'-r');
+        plot(tracklet.path(:,1),tracklet.path(:,2),'.m');
+        %Plot tracklet starting point
+        plot(tracklet.path(1,1),tracklet.path(1,2),'om');
+    end
 end
-%Plot tracklets
-for j=1:length(tracklets)
-    tracklet = tracklets{j};
-    %Plot tracklet
-    plot(tracklet.path(:,1),tracklet.path(:,2),'-r');
-    plot(tracklet.path(:,1),tracklet.path(:,2),'.m');
-    %Plot tracklet starting point
-    plot(tracklet.path(1,1),tracklet.path(1,2),'om');
-end
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Tracklet Processing - the actual algorithm
@@ -146,25 +148,20 @@ for i=1:length(correspondences_lists)
         pair_indices = correspondence_pairs(p,:);
         
         %We want the lower number camera first. Swap pair if need be.
-        [~,i] = sort([tracklets{pair_indices(1)}.cam_num, tracklets{pair_indices(2)}.cam_num], 'ascend');
+        [~,i] = sort([tracklets_cam_coords{pair_indices(1)}.cam_num, tracklets_cam_coords{pair_indices(2)}.cam_num], 'ascend');
         pair_indices = pair_indices(i);
         
         %Do this pair now - if from different cameras:
-        c1 = tracklets{pair_indices(1)}.cam_num;
-        c2 = tracklets{pair_indices(2)}.cam_num;
+        c1 = tracklets_cam_coords{pair_indices(1)}.cam_num;
+        c2 = tracklets_cam_coords{pair_indices(2)}.cam_num;
         if c1 ~= c2
-            %Feed them in to get the implied camera transform from cam 1 to cam 2
-            % Important: the first arg is tracklet from cam 1, second from cam 2
-            transformed_tracklets_1 = transform_tracklets_world_to_camera(cameras(1), tracklets{pair_indices(1)});
-            transformed_tracklets_2 = transform_tracklets_world_to_camera(cameras(2), tracklets{pair_indices(2)});
-            [x,y,theta2] = correspondence_camera_transform(transformed_tracklets_1, ...
-                                                          transformed_tracklets_2);
-            r = norm([x y]);
-            theta1 = -atan2(y, x);
-            
-%            implied_camera_relations{c1,c2} = [implied_camera_relations{c1,c2}; theta1 r theta2];
-            
-            if ~isnan(x)
+            %Feed them in to get the best camera relation from cam 1 to 2
+            % Important: the first arg is tracklet from first cam
+            [theta1,r,theta2] = calculate_camera_relation( ...
+                                  tracklets_cam_coords{pair_indices(1)},...
+                                  tracklets_cam_coords{pair_indices(2)});
+            %Only keep valid relations - if it's not valid its NaN
+            if ~isnan(r)
                 all_camera_relation_votes{c1,c2} = [all_camera_relation_votes{c1,c2}; theta1 r theta2];
             end
         end

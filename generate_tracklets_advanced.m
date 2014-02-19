@@ -1,4 +1,4 @@
-function [ individual_tracklets, correspondences, tracks_with_tracklets ] ...
+function [ individual_tracklets_cam_coords, correspondences, tracks_with_tracklets_world_coords ] ...
   = generate_tracklets_advanced( cameras, num_correspondences, objects_start_speed, ...
        shape_noise_factor, measurement_noise_factor, ... 
        track_coincidence_percentiles, fraction_singles_not_pairs)
@@ -21,8 +21,8 @@ function [ individual_tracklets, correspondences, tracks_with_tracklets ] ...
 bound_box = cameras_bound_box(cameras);
 
 %Where the data goes that gets returned by this function
-tracklets_final = {};
-tracks_with_tracklets_final = {};
+tracklets_cam_coords_final = {};
+tracks_with_tracklets_world_coords_final = {};
 correspondences_final = {};
 
 %Temporary pools of generated tracks to draw from to make
@@ -62,7 +62,7 @@ while size(correspondences_final) < num_correspondences
     end
     %How many do we need?
     num_singles_needed = sum(single_tracks_logical);
-    num_pairs_needed = num_tracks_in_time_window - num_singles_needed'
+    num_pairs_needed = num_tracks_in_time_window - num_singles_needed';
     
     %Get more tracks with tracklets to fill up the pools of singles / pairs
     % if we know there aren't enough for this job.
@@ -127,18 +127,18 @@ while size(correspondences_final) < num_correspondences
             % Set time to 0 for first tracklet and offset others the same.
             temp_track.tracklets{j}.first_time = temp_track.tracklets{j}.first_time + offset;
             % Add tracklets to lists and the correspondence_array
-            tracklets_list_pos = length(tracklets_final) + 1;
+            tracklets_list_pos = length(tracklets_cam_coords_final) + 1;
             correspondance_list_array(end + 1) = tracklets_list_pos;
-            tracklets_final{tracklets_list_pos} = temp_track.tracklets{j};
+            tracklets_cam_coords_final{tracklets_list_pos} = transform_tracklet_world_to_camera(cameras, temp_track.tracklets{j});
         end
         %Add this track to the output list
-        tracks_with_tracklets_final{end+1} = temp_track;
+        tracks_with_tracklets_world_coords_final{end+1} = temp_track;
     end
 
     correspondences_final{end+1} = correspondance_list_array;
 end
 
 %return values
-individual_tracklets  = tracklets_final;
-tracks_with_tracklets = tracks_with_tracklets_final;
+individual_tracklets_cam_coords  = tracklets_cam_coords_final;
+tracks_with_tracklets_world_coords = tracks_with_tracklets_world_coords_final;
 correspondences = correspondences_final;

@@ -8,7 +8,7 @@ function [ x1,y1,theta1,s1, t1, x2, y2, theta2, s2, t2 ] ...
 %values at the centroid.
 
 %Subtract the mean
-centroid = mean(tracklet.path,1)
+centroid = mean(tracklet.path,1);
 centered = bsxfun(@minus,tracklet.path,centroid);
 %Take svd
 [U S V] = svd(centered);

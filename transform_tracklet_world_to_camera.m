@@ -1,6 +1,6 @@
-function tracklet_out = transform_tracklets_world_to_camera(camera, tracklet)
+function tracklet_out = transform_tracklet_world_to_camera(cameras, tracklet)
 
-Tw2c = camera.gen.Tw2c;
+Tw2c = cameras(tracklet.cam_num).gen.Tw2c;
 
 % copy all the other fields of trackelt to tracklets_out
 tracklet_out = tracklet;
