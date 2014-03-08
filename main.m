@@ -229,7 +229,10 @@ for i=1:size(estimates_r,1)
     end
 end
 
-estimated_locations = cam_pos_solver_MDS_MAP(...
+%estimated_locations = cam_pos_solver_MDS_MAP(...
+%                           length(cameras), camera_distance_estimates);
+
+estimated_locations = cam_pos_solver_SDP1_alternating_anchors( ...
                            length(cameras), camera_distance_estimates);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
