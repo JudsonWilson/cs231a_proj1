@@ -217,7 +217,20 @@ make_plots_camera_relation_estimates(estimates_theta1(1,2), estimates_r(1,2), es
 % MDS-Map Step
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
-estimated_locations = mds_map(estimates_r);
+
+%Convert data to distance-constraint list format
+% - rows of [ cam_num_1, cam_num_2, distance ]
+% - generally speaking does not need all camera pairings
+camera_distance_estimates = zeros(0,3);
+for i=1:size(estimates_r,1)
+    for j=i+1:size(estimates_r,2)
+        camera_distance_estimates = [camera_distance_estimates; ...
+                                       i, j, estimates_r(i,j)];
+    end
+end
+
+estimated_locations = cam_pos_solver_MDS_MAP(...
+                           length(cameras), camera_distance_estimates);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plot result
