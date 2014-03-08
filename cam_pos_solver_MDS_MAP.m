@@ -29,6 +29,12 @@ D(logical(eye(N))) = 0;
 %Do the MDS-MAP
 solved_cam_positions = mds_map(D);
 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Force the result to be real
+if ~isreal(solved_cam_positions)
+    fprintf(['Error: the MDS-MAP result is not real-valued, forcing ' ...
+            'it to be real, but it won''t be pretty.\n']);
+    solved_cam_positions = real(solved_cam_positions);
+end
 end
 
