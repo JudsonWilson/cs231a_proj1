@@ -75,73 +75,13 @@ hold on;
                                 true); %with plot
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Tracklet Processing - the actual algorithm
+% Position and Angle Solving
+% - Note that position methods below are optimal up to a reflection,
+%   so calculate both, then pick the one that gives the best angles.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%This will hold the votes for the camera positions, as column lists
-% as (x,y,theta)
-relative_camera_position_votes = zeros(0,3);
-
-%This will store lists of camera relation votes for every pairing
-%of cameras. Self-pairings should be empty. Array should be filled 
-%upper triangular - i.e. always pair the cameras lowest index to the
-% higher index, i.e. c2->c5, NOT c5->c2.
-all_camera_relation_votes = cell(length(cameras), length(cameras));
-
-% Loop through all correspondences (pairings of tracklets).
-for p=1:length(correspondences.tracklet_pairings)
-    pair_indices = correspondences.tracklet_pairings(p,:);
-        
-    %We want the lower number camera first. Swap pair if need be.
-    [~,i] = sort([correspondences.tracklets_cam_coords{pair_indices(1)}.cam_num, ...
-                  correspondences.tracklets_cam_coords{pair_indices(2)}.cam_num],'ascend');
-    pair_indices = pair_indices(i);
-
-    %Do this pair now - if from different cameras:
-    c1 = correspondences.tracklets_cam_coords{pair_indices(1)}.cam_num;
-    c2 = correspondences.tracklets_cam_coords{pair_indices(2)}.cam_num;
-    if c1 ~= c2
-        %Feed them in to get the best camera relation from cam 1 to 2
-        % Important: the first arg is tracklet from first cam
-        [theta1,r,theta2] = calculate_camera_relation( ...
-                  correspondences.tracklets_cam_coords{pair_indices(1)},...
-                  correspondences.tracklets_cam_coords{pair_indices(2)});
-        %Only keep valid relations - if it's not valid its NaN
-        if ~isnan(r)
-            all_camera_relation_votes{c1,c2} = ...
-                [all_camera_relation_votes{c1,c2}; theta1 r theta2];
-        end
-    end
-end    
-    
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Calculate cluster centers for all camera pairs (except self-pairs)
-% - store in a matrix, like a graph.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-estimates_r     = inf*ones(length(cameras));
-estimates_theta = inf*ones(length(cameras));
-pairwise_camera_distance_estimates = zeros(0,3);
-pairwise_camera_angle_estimates = zeros(0,3);
-for i=1:length(cameras)
-    estimates_r(i,i) = 0;
-    estimates_theta(i,i) = 0; %meaningless?
-    for j=(i+1):length(cameras)
-        e = estimate_parameters_2(all_camera_relation_votes{i,j},200,1);
-        estimates_theta(i,j) = e(1);
-        estimates_r    (i,j) = e(2);
-        estimates_r    (j,i) = e(2);
-        estimates_theta(j,i) = e(3);
-        pairwise_camera_distance_estimates = ...
-                                  [pairwise_camera_distance_estimates; ...
-                                   i, j, estimates_r(i,j)];
-        pairwise_camera_angle_estimates = ...
-                                  [pairwise_camera_angle_estimates;
-                                   i, j, e(1)];
-        pairwise_camera_angle_estimates = ...
-                                  [pairwise_camera_angle_estimates;
-                                   j, i, e(3)];
-    end
-end
+[estimated_cameras, camera_relation_votes_and_centers] ...
+    = solve_cameras_extcal(correspondences, 'SDP');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plot the Camera Relation Votes
@@ -149,73 +89,15 @@ end
 
 %Plot relationship votes from camera 1 to camera 2
 figure(2); clf;
-make_plots_camera_relation_votes    (all_camera_relation_votes{1,2});
-make_plots_camera_relation_estimates(estimates_theta(1,2), estimates_r(1,2), estimates_theta(2,1));
+make_plots_camera_relation_votes( ...
+        camera_relation_votes_and_centers.votes{1,2});
+make_plots_camera_relation_estimates( ...
+        camera_relation_votes_and_centers.centers.theta(1,2), ...
+        camera_relation_votes_and_centers.centers.r(1,2), ...
+        camera_relation_votes_and_centers.centers.theta(2,1));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Position and Angle Solving
-% - Note that position methods below are optimal up to a reflection,
-%   so calculate both, then pick the one that gives the best angles.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%
-% Calculate Best Positions
-%
-
-%estimated_locations = cam_pos_solver_MDS_MAP(...
-%                     length(cameras), pairwise_camera_distance_estimates);
-
-%estimated_locations = cam_pos_solver_SDP1_alternating_anchors( ...
-%                     length(cameras), pairwise_camera_distance_estimates);
-
-estimated_locations_unreflected = cam_pos_solver_LM_nllsq( ...
-                    length(cameras), pairwise_camera_distance_estimates);
-
-%
-% Calculate Reflection of Best Position - Reflext about x axis.
-%
-estimated_locations_reflected = estimated_locations_unreflected;
-estimated_locations_reflected(:,1) = -estimated_locations_reflected(:,1);
-
-%
-% Calculate Angles - Using both the original and reflected positions.
-%
-estimated_angles_unreflected = cam_angle_from_pos_solver( ...
-                                      length(cameras), ...
-                                      estimated_locations_unreflected, ...
-                                      pairwise_camera_angle_estimates );
-estimated_angles_reflected = cam_angle_from_pos_solver( ...
-                                      length(cameras), ...
-                                      estimated_locations_reflected, ...
-                                      pairwise_camera_angle_estimates );
-
-%
-%Compute the angle cost function for both cases
-%
-cost_unreflected = calculate_camera_angles_cost(...
-                                   pairwise_camera_angle_estimates, ...
-                                   estimated_angles_unreflected, ...
-                                   estimated_locations_unreflected);
-cost_reflected = calculate_camera_angles_cost(...
-                                   pairwise_camera_angle_estimates, ...
-                                   estimated_angles_reflected, ...
-                                   estimated_locations_reflected);
-
-%
-% Keep the results with the best (lowest) cost function.
-%
-if cost_reflected < cost_unreflected
-    %fprintf('Keeping reflected\n');
-    estimated_locations = estimated_locations_reflected;
-    estimated_angles = estimated_angles_reflected;
-else
-    %fprintf('Keeping unreflected\n');
-    estimated_locations = estimated_locations_unreflected;
-    estimated_angles = estimated_angles_unreflected;
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Plot result
+% Plot Results - Estimated Cameras vs Ground Truth
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 figure(3); clf; hold on;
@@ -236,10 +118,14 @@ plot( [bound_box.x(1); bound_box.x(2); bound_box.x(2); bound_box.x(1); bound_box
 % actual locations, for display purposes - apply a euclidian transform.
 
 %come up with camera coodinates
-c_locations = -ones(length(cameras),2);
+groundtruth_locations = -ones(length(cameras),2);
+estimated_locations   = -ones(length(cameras),2);
+
 for c=1:length(cameras)
-    c_locations(c,1) = cameras(c).calib.x;
-    c_locations(c,2) = cameras(c).calib.y;
+    groundtruth_locations(c,1) = cameras(c).calib.x;
+    groundtruth_locations(c,2) = cameras(c).calib.y;
+    estimated_locations(c,1) = estimated_cameras(c).calib.x;
+    estimated_locations(c,2) = estimated_cameras(c).calib.y;
 end
 
 
@@ -247,10 +133,10 @@ end
 % or reflection. Also do it on the reflection of the points and print
 % their values. Useful to see if we chose the correct reflection or not.
 [proc_error, aligned_estimated_locations, proc_transform] ...
-            = procrustes(c_locations,estimated_locations, ...
+            = procrustes(groundtruth_locations,estimated_locations, ...
                          'Scaling',false,'Reflection',false);
 [proc_error_reflected] ...
-            = procrustes(c_locations, [-estimated_locations(:,1), ...
+            = procrustes(groundtruth_locations, [-estimated_locations(:,1), ...
                                         estimated_locations(:,2)], ...
                          'Scaling',false,'Reflection',false);
 fprintf('Procustes error using chosen locations: %f,\n', proc_error);
@@ -259,7 +145,7 @@ if proc_error <= proc_error_reflected
     fprintf('It appears we DID choose the correct reflection.\n');
 else
     fprintf('It appears we did NOT choose the correct reflection.\n');
-    fprintf('This is not neccessarily a bug.');
+    fprintf('This is not neccessarily a bug.\n');
 end    
 
 %Convert the transform rotation matrix to an angle. Do this by rotating
@@ -279,13 +165,13 @@ for c=1:length(cameras)
     camera.fov_poly_rel = esitmate_plot_fov_poly;
     camera.calib.x = aligned_estimated_locations(c,1);
     camera.calib.y = aligned_estimated_locations(c,2);
-    camera.calib.theta = estimated_angles(c) + display_angle;
-    estimated_cameras(c) = camera_put_in_world(camera);
+    camera.calib.theta = estimated_cameras(c).calib.theta + display_angle;
+    aligned_cameras(c) = camera_put_in_world(camera);
 end
 
 % Show the estimated cameras
-for c = 1:length(estimated_cameras)
-    plot_poly(estimated_cameras(c).gen.fov_poly_world);
+for c = 1:length(aligned_cameras)
+    plot_poly(aligned_cameras(c).gen.fov_poly_world);
 end
 
 

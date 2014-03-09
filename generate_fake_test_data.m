@@ -15,7 +15,9 @@ function [ correspondences, ground_truth ] ...
 %           chopped into 1 tracklet per camera), and correspondences, which
 %           are a (tr1,tr2) pair saying which tracklets likely correspond.
 %           Basic rundown of fields:
-%               .tracklets_cam_coords(i).cam_num - number of the camera
+%               .num_cameras - The number of cameras.
+%               .tracklets_cam_coords(i).cam_num - Number of the camera
+%                                                  that the tracklet is in.
 %               .tracklets_cam_coords(i).path    - (n x 2) list of
 %                                                  coordinates
 %               .tracklets_cam_coords(i).first_time - time of first point.
@@ -109,6 +111,7 @@ end
 % Generate return values
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+correspondences.num_cameras           = length(cameras);
 correspondences.tracklets_cam_coords  = tracklets_cam_coords;
 correspondences.tracklet_pairings     = correspondences_pairs;
 ground_truth = cameras;
