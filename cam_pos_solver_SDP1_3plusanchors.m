@@ -92,11 +92,11 @@ m = n - num_anchors; %We anchor camera 4 at 0,0
 % Setup the bij constants as described in the paper.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 b={};
-for i=1:size(camera_constraints,1)
+for i=1:size(camera_distance_estimates,1)
     ei = zeros(num_cameras,1);
-    ei(o2n(camera_constraints(i,1))) = 1;
+    ei(o2n(camera_distance_estimates(i,1))) = 1;
     ej = zeros(num_cameras,1);
-    ej(o2n(camera_constraints(i,2))) = 1;
+    ej(o2n(camera_distance_estimates(i,2))) = 1;
     b{i} = [      eye(m),  zeros(m,num_anchors);  ...
              zeros(2, m),     anchor_locations' ] ...
            *(ei-ej); %Assume 1 anchor at 0,0
@@ -108,14 +108,14 @@ end
 %   package, available at http://www.cvxr.com/cvx
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 cvx_begin quiet %sdp
-    variable u(size(camera_constraints,1))
-    variable v(size(camera_constraints,1))
+    variable u(size(camera_distance_estimates,1))
+    variable v(size(camera_distance_estimates,1))
     variable Z(m+d,m+d) symmetric
     
     minimize sum(u) + sum(v)
     subject to
-        for i=1:size(camera_constraints,1)
-            sum(sum((b{i}*b{i}').*Z')) - u(i) + v(i) == camera_constraints(i,3)^2
+        for i=1:size(camera_distance_estimates,1)
+            sum(sum((b{i}*b{i}').*Z')) - u(i) + v(i) == camera_distance_estimates(i,3)^2
         end
         Z((m+1):end,(m+1):end) == eye(d)
         u >= 0
