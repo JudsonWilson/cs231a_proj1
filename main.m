@@ -49,22 +49,13 @@ addpath('./lib/LMFnlsq/');
 % Make Cameras
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%General camera field of view polygon.
-% Pointing in the x-axis direction, for an (x,y,theta)=(0,0,0)
-fov_poly.x = [0 20 20 0];
-fov_poly.y = [0 -6  6 0];
+%This polygon is used for plotting the final result, NOT for anything
+%related to generating/interpretting data.
+esitmate_plot_fov_poly.x = [0 20 20 0];
+esitmate_plot_fov_poly.y = [0 -6  6 0];
 
-camparams = [  0,   0,          0; %Keep this at zero for easy alignment of results.
-              30,  20, -pi*40/100;
-             -20, -10,  pi*10/100;
-               5,  15,  pi*70/100]
-for c=1:size(camparams,1)
-    camera.fov_poly_rel = fov_poly;
-    camera.calib.x = camparams(c,1);
-    camera.calib.y = camparams(c,2);
-    camera.calib.theta = camparams(c,3);
-    cameras(c) = camera_put_in_world(camera);
-end
+%Create an array of camera structs.
+cameras = generate_fake_groundtruth_cameras(1);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Start making tracklets / making plot of them
@@ -73,48 +64,15 @@ end
 figure(1);
 clf;
 hold on;
-
-% Show the two cameras
-for c = 1:length(cameras)
-    plot_poly(cameras(c).gen.fov_poly_world);
-end
-axis equal;
-
-%Plot a bound-box
-bound_box = cameras_bound_box(cameras);
-plot( [bound_box.x(1); bound_box.x(2); bound_box.x(2); bound_box.x(1); bound_box.x(1)], ...
-      [bound_box.y(1); bound_box.y(1); bound_box.y(2); bound_box.y(2); bound_box.y(1)], ...
-      'r');
-
-%Get tracklets and tracks
-[ tracklets_cam_coords, correspondences_lists, tracks_with_tracklets_world_coords ] ...
-    = generate_tracklets_advanced( cameras, number_of_correspondences, ...
-       track_velocity_factor, track_non_constant_factor, ...
-       track_observation_variance_scale, ...
-       multiple_objects_collision_percentiles, ...
-       multiple_correspondence_percentage_single_tracklets );
-
-%Plot tracks and tracklets
-for i=1:length(tracks_with_tracklets_world_coords)
-    track_with_tracklets = tracks_with_tracklets_world_coords{i};
-    track = track_with_tracklets.track;
-    tracklets = track_with_tracklets.tracklets;
-    %Plot track
-    plot(track(:,1),track(:,2),'-g');
-    plot(track(:,1),track(:,2),'.b');
-    %Plot starting point
-    plot(track(1,1),track(1,2),'ob');
-    %Plot tracklets associated with track
-    for j=1:length(tracklets)
-        tracklet = tracklets{j};
-        %Plot tracklet
-        plot(tracklet.path(:,1),tracklet.path(:,2),'-r');
-        plot(tracklet.path(:,1),tracklet.path(:,2),'.m');
-        %Plot tracklet starting point
-        plot(tracklet.path(1,1),tracklet.path(1,2),'om');
-    end
-end
-
+[ correspondences, ground_truth ] = ...
+        generate_fake_test_data(cameras,...
+                                number_of_correspondences, ...
+                                track_velocity_factor, ...
+                                track_non_constant_factor, ...
+                                track_observation_variance_scale, ...
+                                multiple_objects_collision_percentiles, ...
+                                multiple_correspondence_percentage_single_tracklets, ...
+                                true); %with plot
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Tracklet Processing - the actual algorithm
@@ -124,51 +82,34 @@ end
 % as (x,y,theta)
 relative_camera_position_votes = zeros(0,3);
 
-%At the time of writing this comment, the data is a huge list of tracklets,
-%and a cell array containing lists of tracklet correspondences. We will
-%process all combinations of pairs in these lists.
-
-%In the future, the algorithm will probabily not have these lists, but
-% will need to derive them on the fly while reading in tracklets one
-% timestep at a time.
-
-
 %This will store lists of camera relation votes for every pairing
 %of cameras. Self-pairings should be empty. Array should be filled 
 %upper triangular - i.e. always pair the cameras lowest index to the
 % higher index, i.e. c2->c5, NOT c5->c2.
 all_camera_relation_votes = cell(length(cameras), length(cameras));
 
-% Loop through all correspondences. Each iteration of this loop processes
-% a list of tracklet correspondences that all happened in a short time
-% window.
-for i=1:length(correspondences_lists)
-    %Correspondences for this time window
-    correspondences_list_now = correspondences_lists{i};
-    
-    %We will do every pairing of tracklets in this correspondence list,
-    %as long as they are from different cameras.
-    correspondence_pairs = nchoosek(correspondences_list_now, 2);
-    for p=1:size(correspondence_pairs,1)
-        pair_indices = correspondence_pairs(p,:);
+% Loop through all correspondences (pairings of tracklets).
+for p=1:length(correspondences.tracklet_pairings)
+    pair_indices = correspondences.tracklet_pairings(p,:);
         
-        %We want the lower number camera first. Swap pair if need be.
-        [~,i] = sort([tracklets_cam_coords{pair_indices(1)}.cam_num, tracklets_cam_coords{pair_indices(2)}.cam_num], 'ascend');
-        pair_indices = pair_indices(i);
-        
-        %Do this pair now - if from different cameras:
-        c1 = tracklets_cam_coords{pair_indices(1)}.cam_num;
-        c2 = tracklets_cam_coords{pair_indices(2)}.cam_num;
-        if c1 ~= c2
-            %Feed them in to get the best camera relation from cam 1 to 2
-            % Important: the first arg is tracklet from first cam
-            [theta1,r,theta2] = calculate_camera_relation( ...
-                                  tracklets_cam_coords{pair_indices(1)},...
-                                  tracklets_cam_coords{pair_indices(2)});
-            %Only keep valid relations - if it's not valid its NaN
-            if ~isnan(r)
-                all_camera_relation_votes{c1,c2} = [all_camera_relation_votes{c1,c2}; theta1 r theta2];
-            end
+    %We want the lower number camera first. Swap pair if need be.
+    [~,i] = sort([correspondences.tracklets_cam_coords{pair_indices(1)}.cam_num, ...
+                  correspondences.tracklets_cam_coords{pair_indices(2)}.cam_num],'ascend');
+    pair_indices = pair_indices(i);
+
+    %Do this pair now - if from different cameras:
+    c1 = correspondences.tracklets_cam_coords{pair_indices(1)}.cam_num;
+    c2 = correspondences.tracklets_cam_coords{pair_indices(2)}.cam_num;
+    if c1 ~= c2
+        %Feed them in to get the best camera relation from cam 1 to 2
+        % Important: the first arg is tracklet from first cam
+        [theta1,r,theta2] = calculate_camera_relation( ...
+                  correspondences.tracklets_cam_coords{pair_indices(1)},...
+                  correspondences.tracklets_cam_coords{pair_indices(2)});
+        %Only keep valid relations - if it's not valid its NaN
+        if ~isnan(r)
+            all_camera_relation_votes{c1,c2} = ...
+                [all_camera_relation_votes{c1,c2}; theta1 r theta2];
         end
     end
 end    
@@ -304,7 +245,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 for c=1:length(cameras)
-    camera.fov_poly_rel = fov_poly;
+    camera.fov_poly_rel = esitmate_plot_fov_poly;
     camera.calib.x = estimated_locations(c,1);
     camera.calib.y = estimated_locations(c,2);
     camera.calib.theta = estimated_angles(c);
