@@ -43,6 +43,7 @@ multiple_correspondence_percentage_single_tracklets = 0.3;
 % Include Paths
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 addpath('./lib/mds_map/');
+addpath('./lib/LMFnlsq/');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Make Cameras
