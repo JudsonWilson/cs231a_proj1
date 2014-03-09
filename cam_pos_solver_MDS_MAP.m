@@ -1,9 +1,11 @@
-function [ solved_cam_positions ] = cam_pos_solver_mds_map(num_cameras, camera_distance_estimates )
+function [ solved_cam_positions ] = cam_pos_solver_mds_map ...
+                                        (num_cameras, ...
+                                         camera_distance_estimates )
 %CAM_POS_SOLVER_MDS_MAP Estimate camera positions using MDS-MAP.
 % Inputs:
 %   - num_cameras - The number of cameras.
-%   - camera_distances - A list of distance constraints between cameras,
-%         as rows in the format [cam_num_1, cam_num_2, distance]
+%   - camera_distance_estimates - A list of distance constraints between
+%         cameras, as rows in the format [cam_num_1, cam_num_2, distance]
 %         Does NOT need to be fully connected.
 % Outputs:
 %   - solved_cam_positions - 2d list of points, where rows are points.

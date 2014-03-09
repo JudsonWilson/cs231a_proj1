@@ -1,5 +1,6 @@
 function [ solved_cam_positions ] = cam_pos_solver_SDP1_3plusanchors...
-                                       (num_cameras, camera_constraints,...
+                                       (num_cameras, ...
+                                        camera_distance_estimates,...
                                         anchors_numbers, anchor_locations)
 %CAM_POS_SOLVER_SDP1_3PLUSANCHORS Estimate camera positions using
 % Semidefinate Programming technique. The technique requires at least
@@ -13,8 +14,8 @@ function [ solved_cam_positions ] = cam_pos_solver_SDP1_3plusanchors...
 %
 % Inputs:
 %   - num_cameras - The number of cameras.
-%   - camera_distances - A list of distance constraints between cameras,
-%         as rows in the format [cam_num_1, cam_num_2, distance]
+%   - camera_distance_estimates - A list of distance constraints between
+%         cameras, as rows in the format [cam_num_1, cam_num_2, distance]
 %         Does NOT need to be fully connected.
 %   - anchors_numbers - List of camera numbers to use as anchors.
 %   - anchor_locations - locations of the cameras to use as anchors.
