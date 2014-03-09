@@ -167,6 +167,14 @@ estimated_locations = cam_pos_solver_LM_nllsq( ...
                            length(cameras), pairwise_camera_distance_estimates);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Angle Estimation Step
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+estimated_angles = cam_angle_from_pos_solver( length(cameras), ...
+                                      estimated_locations, ...
+                                      pairwise_camera_angle_estimates );
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plot result
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -194,20 +202,30 @@ for c=1:length(cameras)
     c_locations(c,2) = cameras(c).calib.y;
 end
 
+
 %Use the procrustes transform to get the best alignment without scaling
-[~, estimated_locations] = procrustes(c_locations, estimated_locations,'scaling',false);
-  
+% or reflection
+% TODO FIXME
+% TODO FIXME - The following has some debug code in it to help detect
+% TODO FIXME   a reflection. if d2 < d1, then it's likely a refleciton
+% TODO FIXME   case.
+% TODO FIXME
+[d1, aligned_estimated_locations, proc_transform] ...
+            = procrustes(c_locations,estimated_locations, ...
+                         'Scaling',false,'Reflection',false);
+d1
+
+[d2]        = procrustes(c_locations,estimated_locations, ...
+                         'Scaling',false)
+
+%Convert the transform rotation matrix to an angle. Do this by rotating
+%the e1 vector and finding the rotation.
+display_angle = atan2(proc_transform.T(:,2)'*[1;0], ...
+                      proc_transform.T(:,1)'*[1;0]);
+
 %Plot the estimated locations, rotated and shifted to align with the
 %original locations, for display purposes
-plot(estimated_locations(:,1), estimated_locations(:,2),'bd');
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Angle Estimation Step
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-estimated_angles = cam_angle_from_pos_solver( length(cameras), ...
-                                      estimated_locations, ...
-                                      pairwise_camera_angle_estimates );
+plot(aligned_estimated_locations(:,1), aligned_estimated_locations(:,2),'bd');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plot cameras at new locations and angles
@@ -215,9 +233,9 @@ estimated_angles = cam_angle_from_pos_solver( length(cameras), ...
 
 for c=1:length(cameras)
     camera.fov_poly_rel = esitmate_plot_fov_poly;
-    camera.calib.x = estimated_locations(c,1);
-    camera.calib.y = estimated_locations(c,2);
-    camera.calib.theta = estimated_angles(c);
+    camera.calib.x = aligned_estimated_locations(c,1);
+    camera.calib.y = aligned_estimated_locations(c,2);
+    camera.calib.theta = estimated_angles(c) + display_angle;
     estimated_cameras(c) = camera_put_in_world(camera);
 end
 
