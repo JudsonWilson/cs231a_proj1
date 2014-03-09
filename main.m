@@ -153,26 +153,66 @@ make_plots_camera_relation_votes    (all_camera_relation_votes{1,2});
 make_plots_camera_relation_estimates(estimates_theta(1,2), estimates_r(1,2), estimates_theta(2,1));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% MDS-Map Step
+% Position and Angle Solving
+% - Note that position methods below are optimal up to a reflection,
+%   so calculate both, then pick the one that gives the best angles.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%
+
+%
+% Calculate Best Positions
+%
 
 %estimated_locations = cam_pos_solver_MDS_MAP(...
-%                           length(cameras), camera_distance_estimates);
+%                     length(cameras), pairwise_camera_distance_estimates);
 
 %estimated_locations = cam_pos_solver_SDP1_alternating_anchors( ...
-%                           length(cameras), camera_distance_estimates);
+%                     length(cameras), pairwise_camera_distance_estimates);
 
-estimated_locations = cam_pos_solver_LM_nllsq( ...
-                           length(cameras), pairwise_camera_distance_estimates);
+estimated_locations_unreflected = cam_pos_solver_LM_nllsq( ...
+                    length(cameras), pairwise_camera_distance_estimates);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Angle Estimation Step
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Calculate Reflection of Best Position - Reflext about x axis.
+%
+estimated_locations_reflected = estimated_locations_unreflected;
+estimated_locations_reflected(:,1) = -estimated_locations_reflected(:,1);
 
-estimated_angles = cam_angle_from_pos_solver( length(cameras), ...
-                                      estimated_locations, ...
+%
+% Calculate Angles - Using both the original and reflected positions.
+%
+estimated_angles_unreflected = cam_angle_from_pos_solver( ...
+                                      length(cameras), ...
+                                      estimated_locations_unreflected, ...
                                       pairwise_camera_angle_estimates );
+estimated_angles_reflected = cam_angle_from_pos_solver( ...
+                                      length(cameras), ...
+                                      estimated_locations_reflected, ...
+                                      pairwise_camera_angle_estimates );
+
+%
+%Compute the angle cost function for both cases
+%
+cost_unreflected = calculate_camera_angles_cost(...
+                                   pairwise_camera_angle_estimates, ...
+                                   estimated_angles_unreflected, ...
+                                   estimated_locations_unreflected);
+cost_reflected = calculate_camera_angles_cost(...
+                                   pairwise_camera_angle_estimates, ...
+                                   estimated_angles_reflected, ...
+                                   estimated_locations_reflected);
+
+%
+% Keep the results with the best (lowest) cost function.
+%
+if cost_reflected < cost_unreflected
+    %fprintf('Keeping reflected\n');
+    estimated_locations = estimated_locations_reflected;
+    estimated_angles = estimated_angles_reflected;
+else
+    %fprintf('Keeping unreflected\n');
+    estimated_locations = estimated_locations_unreflected;
+    estimated_angles = estimated_angles_unreflected;
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plot result
@@ -204,19 +244,23 @@ end
 
 
 %Use the procrustes transform to get the best alignment without scaling
-% or reflection
-% TODO FIXME
-% TODO FIXME - The following has some debug code in it to help detect
-% TODO FIXME   a reflection. if d2 < d1, then it's likely a refleciton
-% TODO FIXME   case.
-% TODO FIXME
-[d1, aligned_estimated_locations, proc_transform] ...
+% or reflection. Also do it on the reflection of the points and print
+% their values. Useful to see if we chose the correct reflection or not.
+[proc_error, aligned_estimated_locations, proc_transform] ...
             = procrustes(c_locations,estimated_locations, ...
                          'Scaling',false,'Reflection',false);
-d1
-
-[d2]        = procrustes(c_locations,estimated_locations, ...
-                         'Scaling',false)
+[proc_error_reflected] ...
+            = procrustes(c_locations, [-estimated_locations(:,1), ...
+                                        estimated_locations(:,2)], ...
+                         'Scaling',false,'Reflection',false);
+fprintf('Procustes error using chosen locations: %f,\n', proc_error);
+fprintf('    and reflection of chosen locations: %f,\n', proc_error_reflected);
+if proc_error <= proc_error_reflected
+    fprintf('It appears we DID choose the correct reflection.\n');
+else
+    fprintf('It appears we did NOT choose the correct reflection.\n');
+    fprintf('This is not neccessarily a bug.');
+end    
 
 %Convert the transform rotation matrix to an angle. Do this by rotating
 %the e1 vector and finding the rotation.
