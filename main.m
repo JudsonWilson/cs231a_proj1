@@ -120,8 +120,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 estimates_r     = inf*ones(length(cameras));
 estimates_theta = inf*ones(length(cameras));
-camera_distance_estimates = zeros(0,3);
-camera_angle_estimates = zeros(0,3);
+pairwise_camera_distance_estimates = zeros(0,3);
+pairwise_camera_angle_estimates = zeros(0,3);
 for i=1:length(cameras)
     estimates_r(i,i) = 0;
     estimates_theta(i,i) = 0; %meaningless?
@@ -131,12 +131,15 @@ for i=1:length(cameras)
         estimates_r    (i,j) = e(2);
         estimates_r    (j,i) = e(2);
         estimates_theta(j,i) = e(3);
-        camera_distance_estimates = [camera_distance_estimates; ...
-                                       i, j, estimates_r(i,j)];
-        camera_angle_estimates = [camera_angle_estimates;
-                                       i, j, e(1)];
-        camera_angle_estimates = [camera_angle_estimates;
-                                       j, i, e(3)];
+        pairwise_camera_distance_estimates = ...
+                                  [pairwise_camera_distance_estimates; ...
+                                   i, j, estimates_r(i,j)];
+        pairwise_camera_angle_estimates = ...
+                                  [pairwise_camera_angle_estimates;
+                                   i, j, e(1)];
+        pairwise_camera_angle_estimates = ...
+                                  [pairwise_camera_angle_estimates;
+                                   j, i, e(3)];
     end
 end
 
@@ -161,7 +164,7 @@ make_plots_camera_relation_estimates(estimates_theta(1,2), estimates_r(1,2), est
 %                           length(cameras), camera_distance_estimates);
 
 estimated_locations = cam_pos_solver_LM_nllsq( ...
-                           length(cameras), camera_distance_estimates);
+                           length(cameras), pairwise_camera_distance_estimates);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plot result
@@ -202,35 +205,9 @@ plot(estimated_locations(:,1), estimated_locations(:,2),'bd');
 % Angle Estimation Step
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%Calculate all angles between lines in the MDS result structure.
-structure_angles = zeros(length(cameras));
-for i=1:length(cameras)
-    for j=1:length(cameras)
-        if i==j; continue; end;
-        delta = estimated_locations(j,:) - estimated_locations(i,:);
-        structure_angles(i,j) = atan2(delta(2),delta(1));
-    end
-end
-
-%For each camera, take all the votes for camera angle (from the
-%camera_relation estimates), add the corresponding structure angles
-%to make all of these angles relative to the x-axis in world coords,
-%then average them.
-for c1=1:length(cameras)
-    votes = [];
-    %Loop through all the camera_angle_estimates and find ones for this
-    %camera. Append these votes to the votes array
-    for i=1:length(camera_angle_estimates)
-       if camera_angle_estimates(i,1) == c1
-           c2 = camera_angle_estimates(i,2);
-           votes(end+1) = camera_angle_estimates(i,3) ...
-                          + structure_angles(c1,c2);
-       end
-    end
-    %Take the mean angle (using the version of the mean for angles, which
-    % are periodic, so require special treatment).
-    estimated_angles(c1) = mean_angle(votes);
-end
+estimated_angles = cam_angle_from_pos_solver( length(cameras), ...
+                                      estimated_locations, ...
+                                      pairwise_camera_angle_estimates );
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plot cameras at new locations and angles
