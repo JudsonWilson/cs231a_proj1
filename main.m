@@ -121,13 +121,6 @@ end
 estimates_r      = inf*ones(length(cameras));
 estimates_theta1 = inf*ones(length(cameras));
 estimates_theta2 = inf*ones(length(cameras));
-%theta2as1 gives the angle for using theta2 as a theta1 when doing the
-% measurement in the frame of the second camera instead of the first
-% The reason i that theta1 and theta2 are measured relative to the ray
-% from camera 1 to camera 2, so camera 1 is an "inner" angle, and
-% theta 2 is the "outer" angle.  So, theta2as1 = -(pi - theta2).
-% TODO FIXME: should we just make this symmetric instead?
-estimates_theta2as1 = inf*ones(length(cameras));
 for i=1:length(cameras)
     estimates_r(i,i) = 0;
     estimates_theta1(i,i) = 0; %meaningless?
@@ -138,14 +131,12 @@ for i=1:length(cameras)
         estimates_theta1(i,j) = e(1);
         estimates_r     (i,j) = e(2);
         estimates_theta2(i,j) = e(3);
-        estimates_theta2as1(i,j) = -(pi - e(3));
     end
 end
 %Make the non-triangular versions of the matrices
 % - r is symmetric
-% - bottom triangle of theta1 is actually theta2as1 (see above).
-estimates_r              = min(cat(3,      estimates_r,         estimates_r'),[],3);
-estimates_theta_combined = min(cat(3, estimates_theta1, estimates_theta2as1'),[],3);
+estimates_r              = min(cat(3,      estimates_r,      estimates_r'),[],3);
+estimates_theta_combined = min(cat(3, estimates_theta1, estimates_theta2'),[],3);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plot the Camera Relation Votes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

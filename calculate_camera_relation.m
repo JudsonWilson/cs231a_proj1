@@ -6,9 +6,11 @@ function [theta1,r,theta2] = calculate_camera_relation(tracklet1, tracklet2)
 %          should be in relative coordinates.
 % Outputs:
 %     r - The distance between camera origins.
-%     theta1, theta2 - Using a raw drawn from the origin of camera 1
-%          to the origin of camera 2, these are the camera angles from
-%          this ray.
+%     theta1, theta2 - Using a ray drawn from the origin of the respective
+%     camera to the other camera, these are the angles from these rays.
+%     i.e. theta1 is the angle from "the ray pointing from the first camera
+%     to the second camera", to camera 1's centerline. Note these angles,
+%     as defined, are the same, but swapped, if you swap cameras.
 
 %
 %Filter and get info about both tracklets
@@ -61,10 +63,15 @@ theta_ray = atan2(delta_y2,delta_x2);
 %Output - Based on a ray drawn from camera origin 1 to camera origina 2,
 %  r is the distance between camera origins, theta1 is the angle of
 %  camera 1 relative to the ray, and theta2 is the angle of camera2
-%  relative to the ray.
+%  relative to the opposite ray (so the result is the same if you swap
+%  cameras).
 theta1 = -theta_ray; %Angle from the ray
 r = norm([delta_x2 delta_y2]);
+%Calculate theta2 as the angle from the ray p1->p2 to the camera.
 theta2 = delta_theta - theta_ray;
+%Change theta2 to be the angle from the ray p2->p1 to the camera.
+theta2 = -(pi - theta2);
+
 %Force angles to the range [-pi,pi]
 theta1 = mod(theta1 + pi, 2 * pi) - pi;
 theta2 = mod(theta2 + pi, 2 * pi) - pi;
