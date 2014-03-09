@@ -118,25 +118,28 @@ end
 % Calculate cluster centers for all camera pairs (except self-pairs)
 % - store in a matrix, like a graph.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-estimates_r      = inf*ones(length(cameras));
-estimates_theta1 = inf*ones(length(cameras));
-estimates_theta2 = inf*ones(length(cameras));
+estimates_r     = inf*ones(length(cameras));
+estimates_theta = inf*ones(length(cameras));
+camera_distance_estimates = zeros(0,3);
+camera_angle_estimates = zeros(0,3);
 for i=1:length(cameras)
     estimates_r(i,i) = 0;
-    estimates_theta1(i,i) = 0; %meaningless?
-    estimates_theta2(i,i) = 0; %meaningless?
-    estimates_theta2as1(i,i) = 0; %meaningless?
+    estimates_theta(i,i) = 0; %meaningless?
     for j=(i+1):length(cameras)
         e = estimate_parameters_2(all_camera_relation_votes{i,j},200,1);
-        estimates_theta1(i,j) = e(1);
-        estimates_r     (i,j) = e(2);
-        estimates_theta2(i,j) = e(3);
+        estimates_theta(i,j) = e(1);
+        estimates_r    (i,j) = e(2);
+        estimates_r    (j,i) = e(2);
+        estimates_theta(j,i) = e(3);
+        camera_distance_estimates = [camera_distance_estimates; ...
+                                       i, j, estimates_r(i,j)];
+        camera_angle_estimates = [camera_angle_estimates;
+                                       i, j, e(1)];
+        camera_angle_estimates = [camera_angle_estimates;
+                                       j, i, e(3)];
     end
 end
-%Make the non-triangular versions of the matrices
-% - r is symmetric
-estimates_r              = min(cat(3,      estimates_r,      estimates_r'),[],3);
-estimates_theta_combined = min(cat(3, estimates_theta1, estimates_theta2'),[],3);
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plot the Camera Relation Votes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -144,23 +147,12 @@ estimates_theta_combined = min(cat(3, estimates_theta1, estimates_theta2'),[],3)
 %Plot relationship votes from camera 1 to camera 2
 figure(2); clf;
 make_plots_camera_relation_votes    (all_camera_relation_votes{1,2});
-make_plots_camera_relation_estimates(estimates_theta1(1,2), estimates_r(1,2), estimates_theta2(1,2));
+make_plots_camera_relation_estimates(estimates_theta(1,2), estimates_r(1,2), estimates_theta(2,1));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % MDS-Map Step
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
-
-%Convert data to distance-constraint list format
-% - rows of [ cam_num_1, cam_num_2, distance ]
-% - generally speaking does not need all camera pairings
-camera_distance_estimates = zeros(0,3);
-for i=1:size(estimates_r,1)
-    for j=i+1:size(estimates_r,2)
-        camera_distance_estimates = [camera_distance_estimates; ...
-                                       i, j, estimates_r(i,j)];
-    end
-end
 
 %estimated_locations = cam_pos_solver_MDS_MAP(...
 %                           length(cameras), camera_distance_estimates);
@@ -226,7 +218,7 @@ for c1=1:length(cameras)
    votes = [];
    for c2=1:length(cameras)
        if c2==c1; continue; end;
-       votes(end+1) = estimates_theta_combined(c1,c2) + structure_angles(c1,c2);
+       votes(end+1) = estimates_theta(c1,c2) + structure_angles(c1,c2);
    end
    estimated_angles(c1) = mean_angle(votes);
 end
