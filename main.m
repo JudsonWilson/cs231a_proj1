@@ -212,15 +212,24 @@ for i=1:length(cameras)
     end
 end
 
-%For each camera, find the mean angle relative to x-axis. This is the
-% absolute camera angle in world coordinates.
+%For each camera, take all the votes for camera angle (from the
+%camera_relation estimates), add the corresponding structure angles
+%to make all of these angles relative to the x-axis in world coords,
+%then average them.
 for c1=1:length(cameras)
-   votes = [];
-   for c2=1:length(cameras)
-       if c2==c1; continue; end;
-       votes(end+1) = estimates_theta(c1,c2) + structure_angles(c1,c2);
-   end
-   estimated_angles(c1) = mean_angle(votes);
+    votes = [];
+    %Loop through all the camera_angle_estimates and find ones for this
+    %camera. Append these votes to the votes array
+    for i=1:length(camera_angle_estimates)
+       if camera_angle_estimates(i,1) == c1
+           c2 = camera_angle_estimates(i,2);
+           votes(end+1) = camera_angle_estimates(i,3) ...
+                          + structure_angles(c1,c2);
+       end
+    end
+    %Take the mean angle (using the version of the mean for angles, which
+    % are periodic, so require special treatment).
+    estimated_angles(c1) = mean_angle(votes);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
