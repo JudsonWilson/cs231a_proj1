@@ -5,8 +5,10 @@ figure(1)
 
 hold on
 win_len = 100;
-[track_objs,corrs,dt] = load_external_data('./raw_data/filtered_data/a.out',win_len);
-
+[all_corrs,gt,dt] = load_external_data('./raw_data/filtered_data/a.out',win_len);
+track_objs = all_corrs.tracklets_cam_coords;
+corrs = all_corrs.tracklet_pairings;
+disp(sprintf('Num Cameras: %d',all_corrs.num_cameras));
 for i = 1:length(track_objs)
     if (max(max(i == corrs(:,1))) == 1)
         switch (track_objs{i}.cam_num)
@@ -15,7 +17,7 @@ for i = 1:length(track_objs)
             case 18,
                 plot(track_objs{i}.path(:,3), track_objs{i}.path(:,1),'-y')
             case 19,
-                plot(track_objs{i}.path(:,3), track_objs{i}.path(:,1),'-m')
+                 plot(track_objs{i}.path(:,3), track_objs{i}.path(:,1),'-m')
         end
     elseif (max(max(i == corrs(:,2))) == 1)
         switch (track_objs{i}.cam_num)
