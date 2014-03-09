@@ -3,6 +3,8 @@ clc
 close all
 figure(1)
 
+% ONLY WORKS FOR CAMERAS 1,18,19 AT THE MOMENT...
+
 hold on
 win_len = 100;
 [all_corrs,gt,dt] = load_external_data('./raw_data/filtered_data/a.out',win_len);
@@ -10,6 +12,7 @@ track_objs = all_corrs.tracklets_cam_coords;
 corrs = all_corrs.tracklet_pairings;
 disp(sprintf('Num Cameras: %d',all_corrs.num_cameras));
 for i = 1:length(track_objs)
+        
     if (max(max(i == corrs(:,1))) == 1)
         switch (track_objs{i}.cam_num)
             case 1,
@@ -37,6 +40,14 @@ for i = 1:length(track_objs)
             case 19,
                 plot(track_objs{i}.path(:,3), track_objs{i}.path(:,1),'-r')
         end
+    end
+    
+    if (track_objs{i}.cam_num == 1)
+        track_objs{i}.cam_num = 1;
+    elseif (track_objs{i}.cam_num == 18)
+        track_objs{i}.cam_num = 2;
+    elseif (track_objs{i}.cam_num == 19)
+        track_objs{i}.cam_num = 3;
     end
     
 end
@@ -70,5 +81,8 @@ for i = 1:size(corrs,1)
     disp(sprintf('T1: %d,%d\nT2: %d,%d\n',track1.first_time,track1.last_time, ...
                                           track2.first_time,track2.last_time))
 end
+
+correspondences = all_corrs;
+ground_truth = gt;
 
 hold off

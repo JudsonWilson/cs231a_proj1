@@ -167,7 +167,7 @@ function [correspondences, ground_truth,dt] ...
     correspondences.tracklet_pairings = tracklet_correspondences;
     
     % Make Ground_Truth -> Send to empty array
-    ground_truth.cameras = zeros(1);
+    ground_truth.cameras = [];
     
     disp('Completed Correspondences')
 end
