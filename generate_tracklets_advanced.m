@@ -126,6 +126,7 @@ while size(correspondences_final) < num_correspondences
         for j=1:length(temp_track.tracklets)
             % Set time to 0 for first tracklet and offset others the same.
             temp_track.tracklets{j}.first_time = temp_track.tracklets{j}.first_time + offset;
+            temp_track.tracklets{j}.path(:,3) = temp_track.tracklets{j}.path(:,3) + offset;
             % Add tracklets to lists and the correspondence_array
             tracklets_list_pos = length(tracklets_cam_coords_final) + 1;
             correspondance_list_array(end + 1) = tracklets_list_pos;

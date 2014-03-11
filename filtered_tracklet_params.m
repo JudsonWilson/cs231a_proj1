@@ -7,9 +7,9 @@ function [ x1,y1,theta1,s1, t1, x2, y2, theta2, s2, t2 ] ...
 %parameters for the tracklet start/end are both the same and are the
 %values at the centroid.
 
-%Subtract the mean
-centroid = mean(tracklet.path,1);
-centered = bsxfun(@minus,tracklet.path,centroid);
+%Subtract the mean x,y values, chop off t
+centroid = mean(tracklet.path(:,1:2),1);
+centered = bsxfun(@minus,tracklet.path(:,1:2),centroid);
 %Take svd
 [U S V] = svd(centered);
 %direction of highest singular value is the direction of the line.

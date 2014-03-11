@@ -30,7 +30,7 @@ while ~track_made
                 if last_point_in_fov == false
                     clear cam_tracklet_inst;
                     cam_tracklet_inst.cam_num = c;
-                    cam_tracklet_inst.path = zeros(0,2);
+                    cam_tracklet_inst.path = zeros(0,3);
                     %For now, set the start time to the index in the track
                     % relative time (e.g. starting at 0 for each track)
                     % since for now we only consider correspondences

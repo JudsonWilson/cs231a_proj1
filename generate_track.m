@@ -1,14 +1,18 @@
 function [ track ] = generate_track( bound_box,  object_start_speed, shape_noise_factor, measurement_noise_factor)
 %GENERATE_TRACK Generate a track within a bound box. Paths are smooth
 %  curves of (programmably) random curviness, with gaussian measurement
-%  noise added.
+%  noise added. 
+%  
+%  Input:
+%    shape_noise_factor determines the acceleration, and change of
+%        acceleration of the point, to make smoothish curvey paths with
+%        changing speed. Set this to 0 for constant-speed straight lines
+%        (plus any noise you add from the measurement_noise_factor).
+%    measurement_noise_factor adds clipped gaussian noise to the final result
+%        Set this to 0 if you want really smooth paths.
 %
-%  shape_noise_factor determines the acceleration, and change of
-%      acceleration of the point, to make smoothish curvey paths with
-%      changing speed. Set this to 0 for constant-speed straight lines
-%      (plus any noise you add from the measurement_noise_factor).
-%  measurement_noise_factor adds clipped gaussian noise to the final result
-%      Set this to 0 if you want really smooth paths.
+%  Output:
+%    track - List of rows format [x, y, t].
 
 %Function for a random variable on range [-1,1], using a clipped normal
 %distribution with stddev=0.5:
@@ -94,5 +98,7 @@ end
 %things bounce around less. Not 100% that is the right thing to do.
 track = track + randn(size(track))*measurement_noise_factor/4*object_start_speed;
 
+%Add time
+track = [track, (1:size(track,1))'];
 end
 

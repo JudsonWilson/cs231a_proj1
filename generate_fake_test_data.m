@@ -16,10 +16,15 @@ function [ correspondences, ground_truth ] ...
 %           are a (tr1,tr2) pair saying which tracklets likely correspond.
 %           Basic rundown of fields:
 %               .num_cameras - The number of cameras.
+%               .tracklets_cam_coords   - A cell array of structures
+%                                         representing a tracklet in camera
+%                                         coordinates. Fields defined
+%                                         below.
 %               .tracklets_cam_coords(i).cam_num - Number of the camera
 %                                                  that the tracklet is in.
-%               .tracklets_cam_coords(i).path    - (n x 2) list of
-%                                                  coordinates
+%               .tracklets_cam_coords(i).path    - (n x 3) list of
+%                                                  coordinates and times
+%                                                  in format [x y t]
 %               .tracklets_cam_coords(i).first_time - time of first point.
 %                                                  This time scheme may
 %                                                  need to change in the
