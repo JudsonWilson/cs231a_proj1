@@ -42,13 +42,15 @@ for i = 1:length(track_objs)
         end
     end
     
-    if (track_objs{i}.cam_num == 1)
-        track_objs{i}.cam_num = 1;
-    elseif (track_objs{i}.cam_num == 18)
-        track_objs{i}.cam_num = 2;
-    elseif (track_objs{i}.cam_num == 19)
-        track_objs{i}.cam_num = 3;
+%     disp(sprintf('Init Cam Num: %d',all_corrs.tracklets_cam_coords{i}.cam_num))
+    if (all_corrs.tracklets_cam_coords{i}.cam_num == 1)
+        all_corrs.tracklets_cam_coords{i}.cam_num = 1;
+    elseif (all_corrs.tracklets_cam_coords{i}.cam_num == 18)
+        all_corrs.tracklets_cam_coords{i}.cam_num = 2;
+    elseif (all_corrs.tracklets_cam_coords{i}.cam_num == 19)
+        all_corrs.tracklets_cam_coords{i}.cam_num = 3;
     end
+%     disp(sprintf('Final Cam Num: %d\n',all_corrs.tracklets_cam_coords{i}.cam_num))
     
 end
 
@@ -84,5 +86,7 @@ end
 
 correspondences = all_corrs;
 ground_truth = gt;
+
+save test_data.mat correspondences ground_truth
 
 hold off
