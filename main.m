@@ -121,12 +121,8 @@ end
 
 %Plot relationship votes from camera 1 to camera 2
 figure(2); clf;
-make_plots_camera_relation_votes( ...
-        camera_relation_votes_and_centers.votes{1,2});
-make_plots_camera_relation_estimates( ...
-        camera_relation_votes_and_centers.centers.theta(1,2), ...
-        camera_relation_votes_and_centers.centers.r(1,2), ...
-        camera_relation_votes_and_centers.centers.theta(2,1));
+make_plots_camera_relation_votes(camera_relation_votes_and_centers, 1, 2);
+make_plots_camera_relation_estimates(camera_relation_votes_and_centers, 1, 2);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plot Results - Estimated Cameras vs Ground Truth
