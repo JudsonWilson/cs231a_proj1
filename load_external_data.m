@@ -1,14 +1,52 @@
-function [individual_tracklets_cam_coords, correspondences,dt] ...
+function [correspondences, ground_truth,dt] ...
             = load_external_data(filename, ...
                                  corr_window_len)
-
+%
+%
+% Outputs:
+%     - correspondences - A structure of tracklets (tracks as seen in
+%           a camera, so if a track goes through multiple cameras it gets
+%           chopped into 1 tracklet per camera), and correspondences, which
+%           are a (tr1,tr2) pair saying which tracklets likely correspond.
+%           Basic rundown of fields:
+%               .num_cameras - The number of cameras.
+%               .tracklets_cam_coords{i}.cam_num - Number of the camera
+%                                                  that the tracklet is in.
+%               .tracklets_cam_coords{i}.path    - (n x 3) list of
+%                                                  coordinates (with time)
+%               .tracklets_cam_coords{i}.first_time - time of first point.
+%                                                  This time scheme may
+%                                                  need to change in the
+%                                                  future. Right now you
+%                                                  just assume each point
+%                                                  is a time step.
+%               .tracklets_cam_coords{i}.last_time - time of last point.
+%               .tracklets_cam_coords{i}.id_num - (Non-unique) tracklet ID
+%               .tracklet_pairings - An n x 2 list of pairings,
+%                                    identifying tracklet array indices.
+%               
+%     - ground_truth - An array of camera structures, with at least the
+%           following fields:
+%             .cameras(i).calib.x      - x position in world
+%             .cameras(i).calib.y      - x position in world
+%             .cameras(i).calib.theta  - angle of rotation in 2D world
+%                                        in radians
+%   
     % Read In Tracklet Array
     tracklets_array = dlmread(filename,' ');
     [m,n] = size(tracklets_array);
     num_tracklets = m;
     data_len = (n-1)/3;
-    correspondences = [];
-%     tracklets_array(:,1:3)
+    
+    % Initialize
+    camera_num_array = [];                      % Array of unique camera IDs.
+    individual_tracklets_cam_coords = cell(0);  % Contains tracklet objects.
+    correspondence_table = zeros(num_tracklets);% Boolean table of 
+                                                % correspondence pairings,
+                                                % to force uniqueness of
+                                                % pairings.
+    tracklet_correspondences = [];              % Pairwise correspondence 
+                                                % of tracklets.
     
     % Intitialize Timing
     dt = inf;
@@ -24,6 +62,9 @@ function [individual_tracklets_cam_coords, correspondences,dt] ...
         
         % Get Camera Number
         tmp_tracklet.cam_num = tmp_tracklet_array(1,1);
+        if (isempty(find(camera_num_array == tmp_tracklet.cam_num,1)))
+            camera_num_array(end+1) = tmp_tracklet.cam_num;
+        end
         
         % Get Tracklet ID Num (NOTE: this is unique to this camera only)
         tmp_tracklet.id_num = tmp_tracklet_array(1,2);
@@ -81,7 +122,6 @@ function [individual_tracklets_cam_coords, correspondences,dt] ...
     end
     
     disp('Making Correspondences')
-    correspondence_table = zeros(num_tracklets);
     tmp = [];
     % Come up with correspondences by window length
     for i = 1:length(t)-corr_window_len
@@ -111,7 +151,7 @@ function [individual_tracklets_cam_coords, correspondences,dt] ...
                 if ((~correspondence_table(unique_tracklets(j),unique_tracklets(k))) & ...
                     (individual_tracklets_cam_coords{unique_tracklets(j)}.cam_num ~= ...
                      individual_tracklets_cam_coords{unique_tracklets(k)}.cam_num))
-                    correspondences = [correspondences;unique_tracklets([j,k])];
+                    tracklet_correspondences = [tracklet_correspondences;unique_tracklets([j,k])];
                     correspondence_table(unique_tracklets(j),unique_tracklets(k)) = 1;
                 end
             end
@@ -119,5 +159,15 @@ function [individual_tracklets_cam_coords, correspondences,dt] ...
     end
     
 %     tmp
+
+    % Build Output Objects
+    % Make Correspondences
+    correspondences.num_cameras = length(camera_num_array);
+    correspondences.tracklets_cam_coords = individual_tracklets_cam_coords;
+    correspondences.tracklet_pairings = tracklet_correspondences;
+    
+    % Make Ground_Truth -> Send to empty array
+    ground_truth.cameras = [];
+    
     disp('Completed Correspondences')
 end
