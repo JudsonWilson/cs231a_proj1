@@ -81,7 +81,7 @@ hold on;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 [estimated_cameras, camera_relation_votes_and_centers] ...
-    = solve_cameras_extcal(correspondences, 'SDP');
+    = solve_cameras_extcal(correspondences, 'MDS-MAP');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plot the Camera Relation Votes
