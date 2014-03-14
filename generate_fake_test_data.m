@@ -119,4 +119,4 @@ end
 correspondences.num_cameras           = length(cameras);
 correspondences.tracklets_cam_coords  = tracklets_cam_coords;
 correspondences.tracklet_pairings     = correspondences_pairs;
-ground_truth = cameras;
+ground_truth.cameras = cameras;

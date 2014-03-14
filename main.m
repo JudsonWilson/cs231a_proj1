@@ -4,6 +4,26 @@ clear; clc;
 % Option settings
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%Set this to the name of a data filename, or blank (i.e. []) if there
+% is none. The data should contain the following structures:
+%
+%  correspondences - a structure of tracklets and pairwise correspondence
+%                 lists, and other fields, in the same format as
+%                 returned by generate_fake_test_data
+%
+%  ground_truth - Struct of ground truth cameras
+%      .cameras - array of cameras in the format given by the format
+%                 generate_fake_groundtruth_cameras.
+%
+
+data_filename = [];
+%data_filename = 'test_data.mat';
+
+%
+% The following fields are used to generate fake data if
+% data_filename is an empty array.
+%
+
 %Set this to 1 to see what happens with one set of correspondences. Set
 % to 100-1000 to start seeing statistically meaningful results.
 number_of_correspondences = 1000;
@@ -46,7 +66,14 @@ addpath('./lib/mds_map/');
 addpath('./lib/LMFnlsq/');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Make Cameras
+% Load Data File if Avaialable
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if ~isempty(data_filename)
+	load(data_filename)
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Make Ground Truth Cameras if Generating fake data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %This polygon is used for plotting the final result, NOT for anything
@@ -54,25 +81,30 @@ addpath('./lib/LMFnlsq/');
 esitmate_plot_fov_poly.x = [0 20 20 0];
 esitmate_plot_fov_poly.y = [0 -6  6 0];
 
-%Create an array of camera structs.
-cameras = generate_fake_groundtruth_cameras(1);
+if isempty(data_filename)
+    %Create an array of camera structs.
+    temp_cameras = generate_fake_groundtruth_cameras(1);
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Start making tracklets / making plot of them
+% Start making tracklets / making plot if generating fake data.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-figure(1);
-clf;
-hold on;
-[ correspondences, ground_truth ] = ...
-        generate_fake_test_data(cameras,...
-                                number_of_correspondences, ...
-                                track_velocity_factor, ...
-                                track_non_constant_factor, ...
-                                track_observation_variance_scale, ...
-                                multiple_objects_collision_percentiles, ...
-                                multiple_correspondence_percentage_single_tracklets, ...
-                                true); %with plot
+if isempty(data_filename)
+    figure(1);
+    clf;
+    hold on;
+    [ correspondences, ground_truth ] = ...
+          generate_fake_test_data(temp_cameras,...
+                                  number_of_correspondences, ...
+                                  track_velocity_factor, ...
+                                  track_non_constant_factor, ...
+                                  track_observation_variance_scale, ...
+                                  multiple_objects_collision_percentiles, ...
+                                  multiple_correspondence_percentage_single_tracklets, ...
+                                  true); %with plot
+    clear temp_cameras;
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Position and Angle Solving
@@ -102,66 +134,77 @@ make_plots_camera_relation_estimates( ...
 
 figure(3); clf; hold on;
 
-% Show the cameras
-for c = 1:length(cameras)
-    plot_poly(cameras(c).gen.fov_poly_world);
-end
-axis equal;
+if ~isempty(ground_truth) && ~isempty(ground_truth.cameras)
+    % Show the cameras
+    for c = 1:length(ground_truth.cameras)
+        plot_poly(ground_truth.cameras(c).gen.fov_poly_world);
+    end
 
-%Plot a bound-box
-bound_box = cameras_bound_box(cameras);
-plot( [bound_box.x(1); bound_box.x(2); bound_box.x(2); bound_box.x(1); bound_box.x(1)], ...
-      [bound_box.y(1); bound_box.y(1); bound_box.y(2); bound_box.y(2); bound_box.y(1)], ...
-      'r');
+    %Plot a bound-box
+    bound_box = cameras_bound_box(ground_truth.cameras);
+    plot( [bound_box.x(1); bound_box.x(2); bound_box.x(2); bound_box.x(1); bound_box.x(1)], ...
+          [bound_box.y(1); bound_box.y(1); bound_box.y(2); bound_box.y(2); bound_box.y(1)], ...
+          'r');
+end
 
 % We want to line up the estimated locations as well as we can with the
 % actual locations, for display purposes - apply a euclidian transform.
 
 %come up with camera coodinates
-groundtruth_locations = -ones(length(cameras),2);
-estimated_locations   = -ones(length(cameras),2);
 
-for c=1:length(cameras)
-    groundtruth_locations(c,1) = cameras(c).calib.x;
-    groundtruth_locations(c,2) = cameras(c).calib.y;
+if ~isempty(ground_truth) && ~isempty(ground_truth.cameras)
+    groundtruth_locations = -ones(length(ground_truth.cameras),2);
+    for c=1:length(ground_truth.cameras)
+        groundtruth_locations(c,1) = ground_truth.cameras(c).calib.x;
+        groundtruth_locations(c,2) = ground_truth.cameras(c).calib.y;
+    end
+end
+
+estimated_locations = -ones(length(estimated_cameras),2);
+for c=1:length(estimated_cameras)
     estimated_locations(c,1) = estimated_cameras(c).calib.x;
     estimated_locations(c,2) = estimated_cameras(c).calib.y;
 end
 
+if ~isempty(ground_truth) && ~isempty(ground_truth.cameras)
+    %Use the procrustes transform to get the best alignment without scaling
+    % or reflection. Also do it on the reflection of the points and print
+    % their values. Useful to see if we chose the correct reflection or not.
+    [proc_error, aligned_estimated_locations, proc_transform] ...
+                = procrustes(groundtruth_locations,estimated_locations, ...
+                             'Scaling',false,'Reflection',false);
+    [proc_error_reflected] ...
+                = procrustes(groundtruth_locations, [-estimated_locations(:,1), ...
+                                            estimated_locations(:,2)], ...
+                             'Scaling',false,'Reflection',false);
+    fprintf('Procustes error using chosen locations: %f,\n', proc_error);
+    fprintf('    and reflection of chosen locations: %f,\n', proc_error_reflected);
+    if proc_error <= proc_error_reflected
+        fprintf('It appears we DID choose the correct reflection.\n');
+    else
+        fprintf('It appears we did NOT choose the correct reflection.\n');
+        fprintf('This is not neccessarily a bug.\n');
+    end
 
-%Use the procrustes transform to get the best alignment without scaling
-% or reflection. Also do it on the reflection of the points and print
-% their values. Useful to see if we chose the correct reflection or not.
-[proc_error, aligned_estimated_locations, proc_transform] ...
-            = procrustes(groundtruth_locations,estimated_locations, ...
-                         'Scaling',false,'Reflection',false);
-[proc_error_reflected] ...
-            = procrustes(groundtruth_locations, [-estimated_locations(:,1), ...
-                                        estimated_locations(:,2)], ...
-                         'Scaling',false,'Reflection',false);
-fprintf('Procustes error using chosen locations: %f,\n', proc_error);
-fprintf('    and reflection of chosen locations: %f,\n', proc_error_reflected);
-if proc_error <= proc_error_reflected
-    fprintf('It appears we DID choose the correct reflection.\n');
+    %Convert the transform rotation matrix to an angle. Do this by rotating
+    %the e1 vector and finding the rotation.
+    display_angle = atan2(proc_transform.T(:,2)'*[1;0], ...
+                          proc_transform.T(:,1)'*[1;0]);
+
+    %Plot the estimated locations, rotated and shifted to align with the
+    %original locations, for display purposes
+    plot(aligned_estimated_locations(:,1), aligned_estimated_locations(:,2),'bd');
 else
-    fprintf('It appears we did NOT choose the correct reflection.\n');
-    fprintf('This is not neccessarily a bug.\n');
-end    
-
-%Convert the transform rotation matrix to an angle. Do this by rotating
-%the e1 vector and finding the rotation.
-display_angle = atan2(proc_transform.T(:,2)'*[1;0], ...
-                      proc_transform.T(:,1)'*[1;0]);
-
-%Plot the estimated locations, rotated and shifted to align with the
-%original locations, for display purposes
-plot(aligned_estimated_locations(:,1), aligned_estimated_locations(:,2),'bd');
+    %No groundtruth? don't do procrustes
+    aligned_estimated_locations = estimated_locations;
+    display_angle = 0;
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plot cameras at new locations and angles
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-for c=1:length(cameras)
+for c=1:length(estimated_cameras)
     camera.fov_poly_rel = esitmate_plot_fov_poly;
     camera.calib.x = aligned_estimated_locations(c,1);
     camera.calib.y = aligned_estimated_locations(c,2);
