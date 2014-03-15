@@ -137,20 +137,23 @@ for i=1:num_cameras
     estimates_r(i,i) = 0;
     estimates_theta(i,i) = 0; %meaningless?
     for j=(i+1):num_cameras
-        e = estimate_parameters_2(all_centered_camera_relation_votes{i,j},200,1);
-        estimates_theta(i,j) = e(1);
-        estimates_r    (i,j) = e(2);
-        estimates_r    (j,i) = e(2);
-        estimates_theta(j,i) = e(3);
-        pairwise_centered_camera_distance_estimates = ...
-                                  [pairwise_centered_camera_distance_estimates; ...
-                                   i, j, estimates_r(i,j)];
-        pairwise_centered_camera_angle_estimates = ...
-                                  [pairwise_centered_camera_angle_estimates;
-                                   i, j, e(1)];
-        pairwise_centered_camera_angle_estimates = ...
-                                  [pairwise_centered_camera_angle_estimates;
-                                   j, i, e(3)];
+        e = estimate_parameters_3(all_centered_camera_relation_votes{i,j},200,1);
+        %Only create an estimate if we found a good vote
+        if ~isempty(e)
+            estimates_theta(i,j) = e(1);
+            estimates_r    (i,j) = e(2);
+            estimates_r    (j,i) = e(2);
+            estimates_theta(j,i) = e(3);
+            pairwise_centered_camera_distance_estimates = ...
+                          [pairwise_centered_camera_distance_estimates; ...
+                           i, j, estimates_r(i,j)];
+            pairwise_centered_camera_angle_estimates = ...
+                          [pairwise_centered_camera_angle_estimates; ...
+                           i, j, e(1)];
+            pairwise_centered_camera_angle_estimates = ...
+                          [pairwise_centered_camera_angle_estimates; ...
+                           j, i, e(3)];
+        end
     end
 end
 
