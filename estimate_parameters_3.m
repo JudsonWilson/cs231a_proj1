@@ -82,7 +82,7 @@ r_bin_starts = [0:r_subbin_size:(r_max+r_subbin_size - 0.000001)]; % and go 1 fa
 
 %Put votes in appropriate bins
 vote_hist = zeros(angle_num_subbins, r_num_subbins, angle_num_subbins);
-for i=1:length(camera_relation_votes)
+for i=1:size(camera_relation_votes,1)
     vote = camera_relation_votes(i,:);
     vote(1) = mod(vote(1), 2*pi);
     vote(3) = mod(vote(3), 2*pi);
