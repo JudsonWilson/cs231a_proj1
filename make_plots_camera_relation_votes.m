@@ -19,18 +19,21 @@ hold on;
 plot(relation_votes(:,1), relation_votes(:,2),formatstring);
 %plot(mean(relation_votes(:,1)), mean(relation_votes(:,2)),'xr');
 xlabel(t1str); ylabel(rstr);
+ax = axis; ax([1,2,3]) = [-pi, pi, 0    ]; axis(ax);
 
 subplot(2,2,2)
 hold on;
 plot(relation_votes(:,2), relation_votes(:,3),formatstring);
 %plot(mean(relation_votes(:,2)), mean_angle(relation_votes(:,3)),'xr');
 xlabel(rstr); ylabel(t2str);
+ax = axis; ax([1 3 4]) = [0,    -pi, pi]; axis(ax);
 
 subplot(2,2,3)
 hold on;
 plot(relation_votes(:,3), relation_votes(:,1),formatstring);
 %plot(mean_angle(relation_votes(:,3)), mean(relation_votes(:,1)),'xr');
 xlabel(t2str); ylabel(t1str);
+ax = [-pi, pi, -pi, pi]; axis(ax);
 
 subplot(2,2,4)
 hold on;
@@ -41,6 +44,7 @@ plot3(relation_votes(:,1), ...
 %      mean      (relation_votes(:,2)), ...
 %      mean_angle(relation_votes(:,3)),'xr');
 xlabel(t1str); ylabel(rstr); zlabel(t2str);
+ax = axis; ax([1 2 3 5 6]) = [-pi, pi, 0,   -pi, pi]; axis(ax);
 
 
 end
