@@ -36,6 +36,13 @@ vector< vector<float> > groundTruthTracks;
 //  [[cam#,0,0,0],[x0,y0,t0,tr#],[x1,y1,t1,tr#], ... ]]
 vector< vector< vector<float> > > cameraTracks;
 
+// Store Tracklet IDs by camera
+// [[id0cam0,id1cam0,...,idMcam0],
+//  [id0cam1,id1cam1,...,idKcam1],
+//  ...,
+//  [id0camN,id1camN,...,idLcamN]]
+vector< vector<float> > cameraUniqueTracks;
+
 // Create Random Number Gen
 default_random_engine generator;
 uniform_real_distribution<float> distribution(0.0,1.0);
@@ -168,10 +175,10 @@ int main(int argc, char* argv[])
     tmp = writeTracks(outFilename);
     
     // Track Stats
-    cout << "Num Tracks: " << groundTruthTracks.size() << endl;
-    cout << "Tracks Samples by cam: ";
-    for (size_t i = 0; i < cameraTracks.size(); i++) {
-        cout << cameraTracks[i].size() << " ";
+    cout << "Total Num Tracks: " << groundTruthTracks.size() << endl;
+    cout << "Num Tracks by cam: ";
+    for (size_t i = 0; i < cameraUniqueTracks.size(); i++) {
+        cout << cameraUniqueTracks[i].size() << " ";
     }
     cout << endl;
     
@@ -564,6 +571,9 @@ int inCameraFOV(int camNum,
     // Capture Track Information
     float trackID = groundTruthTracks[trackNum][1];
     
+    // Keep track of whether tracklet is in this camera
+    size_t trackletInCam = 0;
+    
     // Find all points in this track which fall in this camera's FOV
     for (size_t i = 0; i < groundTruthTracks[trackNum].size()/3-1; i++) {
         // Get Point
@@ -606,6 +616,9 @@ int inCameraFOV(int camNum,
         
         // Capture Point if in polygon
         if (validSignFlag) {
+            // Update status of the tracklet occuring in this camera
+            trackletInCam = 1;
+            
             // Convert groundTrack point to camera frame
             RVO::Vector2 p_cam = RVO::Vector2(inv_rotation[0]*(p-camCenter),
                                               inv_rotation[1]*(p-camCenter));
@@ -618,6 +631,11 @@ int inCameraFOV(int camNum,
             // Add to cameraTracks
             cameraTracks[camNum].push_back(point);
         }
+    }
+    
+    // Add tracklet ID to cameraUniqueTracklets
+    if (trackletInCam) {
+        cameraUniqueTracklets[camNum].push_back(trackNum);
     }
     
     // Return
