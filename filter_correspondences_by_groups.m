@@ -1,4 +1,4 @@
-function filter_correspondences_by_group(correspondences, ...
+function [shapes] =  filter_correspondences_by_groups(correspondences, ...
                                          time_scaling_factor, ...
                                          bins)
 
@@ -19,11 +19,24 @@ function filter_correspondences_by_group(correspondences, ...
 %       that will define the group shape                         %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+  max_cam_num = 0;
+  active_cameras = [];
+  for i=1:size(correspondences.tracklets_cam_coords)
+    cam_num = correspondences.tracklets_cam_coords{i}.cam_num;
+    if(cam_num > max_cam_num)
+      max_cam_num = cam_num;
+    end
+    if(!ismember(cam_num, active_cameras))
+      active_cameras = [active_cameras cam_num];
+    end
+  end
+
   num_tracklets = size(correspondences.tracklets_cam_coords);
 
   % create array of every point for each camera
-  camera_points = cell(correspondences.num_cameras);
-  for i=1:correspondences.num_cameras
+  %camera_points = cell(correspondences.num_cameras);
+  camera_points = cell(max_cam_num);
+  for i=1:max_cam_num
     camera_points{i} = [];
   end
 
@@ -32,15 +45,16 @@ function filter_correspondences_by_group(correspondences, ...
     tracklet = correspondences.tracklets_cam_coords{i};
     % append the tracklet index to each point, will be needed to get the tracklet
     % number from a kdtree search result
-    points = [tracklets.points ones(size(tracklets.points,1),1)*i];
-    camera_points{tracklet.cam_num} = [camera_points{tracklets.cam_num}; points];
+    points = [tracklet.path ones(size(tracklet.path,1),1)*i];
+    camera_points{tracklet.cam_num} = [camera_points{tracklet.cam_num}; points];
   end
 
   % build a KD-tree for each camera
-  kdtrees = cell(correspondences.num_cameras);
-  for i=1:correspondences.num_cameras
+  kdtrees = cell(max_cam_num);
+  for i=1:size(active_cameras,1)
+    cam = active_cameras(i);
     % ignore the tracklet index field in the KD tree
-    kdtrees{i} = KDTreeSearcher(camera_points{i}(:,1:3), 'euclidean');
+    kdtrees{cam} = KDTreeSearcher(camera_points{cam}(:,1:3), 'euclidean');
   end
 
   % create and initialize the shape histogram for each tracklet
@@ -101,8 +115,5 @@ function filter_correspondences_by_group(correspondences, ...
     accumulatedHistogram = accumulatedHistogram/size(tracklet.path,1);
     shapes{trackletId} = accumulatedHistogram;
   end
-
-
-
 
 end
