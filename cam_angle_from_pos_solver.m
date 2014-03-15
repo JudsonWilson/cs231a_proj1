@@ -11,8 +11,8 @@ function [ estimated_angles ] = cam_angle_from_pos_solver( num_cameras,...
 %       positions will be used in conjunction with pairwise angles to
 %       come up with the estimate.
 %   pairwise_camera_angle_estimates - Pairwise angle estimates, in the
-%       format rows of [cam_num_1, cam_num_2, angle]. This is the angle of
-%       the camera from the chord drawn from cammera 1 to camera 2.
+%       format rows of [cam_num_a, cam_num_b, angle]. This is the angle of
+%       camera_a from the chord drawn from camera_a to camera_b.
 %
 % Ouptuts:
 %   estimated_angles - Angles of each camera in world coordinates, as a
