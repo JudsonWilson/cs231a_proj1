@@ -1,4 +1,5 @@
 #Comment line, do not use for anything else!
-.DS_Store
+*.o
+sim
 *.asv
 *.m~
