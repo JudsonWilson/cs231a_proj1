@@ -197,6 +197,13 @@ if ~isempty(ground_truth) && ~isempty(ground_truth.cameras)
     %Plot the estimated locations, rotated and shifted to align with the
     %original locations, for display purposes
     plot(aligned_estimated_locations(:,1), aligned_estimated_locations(:,2),'bd');
+    %Make connector lines, and number the cameras
+    for i = 1:size(aligned_estimated_locations,1)
+        plot([aligned_estimated_locations(i,1); groundtruth_locations(i,1)],...
+             [aligned_estimated_locations(i,2); groundtruth_locations(i,2)],...
+             'r:');
+        text( groundtruth_locations(i,1),  groundtruth_locations(i,2), num2str(i))
+    end
 else
     %No groundtruth? don't do procrustes
     aligned_estimated_locations = estimated_locations;
