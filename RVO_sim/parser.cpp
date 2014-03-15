@@ -34,7 +34,7 @@ int getSimAgentLineDetails(string line, float & value)
     
     // Convert to float
     try {
-        value = stof(value_s);
+        value = string::stof(value_s);
     } catch (exception& e) {
         cout << "Unable to Load SimLineDetails" << endl;
         cout << "Exception: " << e.what() << endl;

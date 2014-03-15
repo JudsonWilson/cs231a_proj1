@@ -1,9 +1,9 @@
 
 %% milestone.tex
 %% V1.0
-%% 2014/02/13
-%% by Christian Elder
-%% This is a file describing the milestone achievements for CS231a project.
+%% 2014/03/15
+%% by Christian Elder, Judson Wilson, Tony Vivoli
+%% This is the final report for CS231a (Winter 2014) project.
 
 %%*************************************************************************
 %% Legal Notice:
@@ -449,10 +449,13 @@
 	\indent In theory, this calibration information can be inferred from the spatial and temporal information of the scene. Existing techniques can be applied to identify moving objects within the scene from RGB-D data. In the course of this project, we endeavour to create an algorithm which will use the estimated trajectories, or “tracklets” of the objects in the scene, combined with statistical inference techniques and geometry, to estimate the relative locations and orientations of the cameras from which the data originated.
 
 % RELATED WORK
-\section{Related Work}
-	\indent The problem of determining relationship between cameras with non-overlapping views is not new, and there are several approaches to the problem. Other work has been done to infer the network topology of the camera system \cite{ellis2003,makris2004}. These algorithms typically estimate connectivity between cameras, in the sense of estimating transition probabilities of objects traversing a network, where these objects are observed at the camera nodes. These methods give little insight into the geometric relationship between the cameras. However, these network topologies may be useful in determining corresponding objects between cameras. \\
-	\indent In \cite{rahimi2004} Rahimi et. al. give an algorithm to determine the relative position and rotation of cameras within a network, however it requires that a single object move through the network during a manual calibration phase. Similiar calibration steps are needed in \cite{knight2003}, and the algorithm is not well detailed. One of the goals of our algorithm is that it will be able to be calibrated with normal daily traffic in the system, and not require any manual calibration at all. \\
-	\indent To our knowledge, no paper has been published which thoroughly outlines an algorithm which can estimate the external calibration of a network of cameras without prior information or manual calibration steps.
+\section{Related Work \& Key Contribution}
+	\subsection{Prior Art}
+		\indent The problem of determining relationship between cameras with non-overlapping views is not new, and there are several approaches to the problem. Other work has been done to infer the network topology of the camera system \cite{ellis2003,makris2004}. These algorithms typically estimate connectivity between cameras, in the sense of estimating transition probabilities of objects traversing a network, where these objects are observed at the camera nodes. These methods give little insight into the geometric relationship between the cameras. However, these network topologies may be useful in determining corresponding objects between cameras. \\
+		\indent In \cite{rahimi2004} Rahimi et. al. give an algorithm to determine the relative position and rotation of cameras within a network, however it requires that a single object move through the network during a manual calibration phase. Similiar calibration steps are needed in \cite{knight2003}, and the algorithm is not well detailed. One of the goals of our algorithm is that it will be able to be calibrated with normal daily traffic in the system, and not require any manual calibration at all. \\
+		\indent To our knowledge, no paper has been published which thoroughly outlines an algorithm which can estimate the external calibration of a network of cameras without prior information or manual calibration steps.
+	\subsection{Key Contribution}
+	******************FILL IN****************
 	
 % ALGORITHM DESCRIPTION
 \section{Algorithm}
