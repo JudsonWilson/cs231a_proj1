@@ -183,49 +183,14 @@ switch algorithm
         error(['Unknown algorithm!: ' algorithm]);
 end
 
-%
-% Calculate Reflection of Best Position - Reflext about x axis.
-%
-estimated_locations_reflected = estimated_locations_unreflected;
-estimated_locations_reflected(:,1) = -estimated_locations_reflected(:,1);
-
-%
-% Calculate Angles - Using both the original and reflected positions.
-%
-estimated_angles_unreflected = cam_angle_from_pos_solver( ...
-                                      num_cameras, ...
-                                      estimated_locations_unreflected, ...
-                                      pairwise_centered_camera_angle_estimates );
-estimated_angles_reflected = cam_angle_from_pos_solver( ...
-                                      num_cameras, ...
-                                      estimated_locations_reflected, ...
-                                      pairwise_centered_camera_angle_estimates );
-
-%
-%Compute the angle cost function for both cases
-%
-cost_unreflected = calculate_camera_angles_cost(...
-                                   pairwise_centered_camera_angle_estimates, ...
-                                   estimated_angles_unreflected, ...
-                                   estimated_locations_unreflected);
-cost_reflected = calculate_camera_angles_cost(...
-                                   pairwise_centered_camera_angle_estimates, ...
-                                   estimated_angles_reflected, ...
-                                   estimated_locations_reflected);
-
-%
-% Keep the results with the best (lowest) cost function.
-%
-if cost_reflected < cost_unreflected
-    %fprintf('Keeping reflected\n');
-    estimated_locations = estimated_locations_reflected;
-    estimated_angles = estimated_angles_reflected;
-else
-    %fprintf('Keeping unreflected\n');
-    estimated_locations = estimated_locations_unreflected;
-    estimated_angles = estimated_angles_unreflected;
-end
-
+%Estimate the angles, and reflect the positions if it yeilds a lower cost
+%solution, since our position solvers cannot determine the correct
+%reflection without the angle data.
+[estimated_locations, estimated_angles] = ...
+           cam_reflection_and_angle_solver( ...
+                              num_cameras, ...
+                              estimated_locations_unreflected, ...
+                              pairwise_centered_camera_angle_estimates );
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Create results structure
