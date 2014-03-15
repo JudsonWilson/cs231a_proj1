@@ -1,0 +1,5 @@
+#Comment line, do not use for anything else!
+*.o
+sim
+*.asv
+*.m~
