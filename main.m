@@ -106,18 +106,25 @@ if isempty(data_filename)
     clear temp_cameras;
 end
 
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Position and Angle Solving
 % - Note that position methods below are optimal up to a reflection,
 %   so calculate both, then pick the one that gives the best angles.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+algo = 'MDS-MAP';
+%algo = 'SDP';
+%algo = 'LM-nllsq';
 
 [estimated_cameras, camera_relation_votes_and_centers] ...
-    = solve_cameras_extcal(correspondences, 'MDS-MAP');
+    = solve_cameras_extcal(correspondences, algo);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plot the Camera Relation Votes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
 
 %Plot relationship votes from camera 1 to camera 2
 figure(2); clf;
