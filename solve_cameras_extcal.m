@@ -133,11 +133,12 @@ estimates_r     = inf*ones(num_cameras);
 estimates_theta = inf*ones(num_cameras);
 pairwise_centered_camera_distance_estimates = zeros(0,3);
 pairwise_centered_camera_angle_estimates = zeros(0,3);
+votes_in_window = cell(num_cameras,num_cameras); %used for plots
 for i=1:num_cameras
     estimates_r(i,i) = 0;
     estimates_theta(i,i) = 0; %meaningless?
     for j=(i+1):num_cameras
-        e = estimate_parameters_3(all_centered_camera_relation_votes{i,j},200,1);
+        [e, votes_in_window{i,j}] = estimate_parameters_3(all_centered_camera_relation_votes{i,j},200,1);
         %Only create an estimate if we found a good vote
         if ~isempty(e)
             estimates_theta(i,j) = e(1);
@@ -250,5 +251,6 @@ end
 camera_relation_votes_and_centers.votes = all_centered_camera_relation_votes;
 camera_relation_votes_and_centers.centers.theta = estimates_theta;
 camera_relation_votes_and_centers.centers.r     = estimates_r;
+camera_relation_votes_and_centers.votes_in_window = votes_in_window;
 
 end
