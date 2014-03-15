@@ -138,7 +138,7 @@ for i=1:num_cameras
     estimates_r(i,i) = 0;
     estimates_theta(i,i) = 0; %meaningless?
     for j=(i+1):num_cameras
-        [e, votes_in_window{i,j}] = estimate_parameters_3(all_centered_camera_relation_votes{i,j},200,1);
+        [e, votes_in_window{i,j}] = estimate_parameters_3(all_centered_camera_relation_votes{i,j});
         %Only create an estimate if we found a good vote
         if ~isempty(e)
             estimates_theta(i,j) = e(1);

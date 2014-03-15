@@ -1,4 +1,4 @@
-function [center votes_in_window] = estimate_parameters_2(camera_relation_votes, num_bins, blur_factor)
+function [center votes_in_window] = estimate_parameters_3(camera_relation_votes)
 %
 % Jointly estimate the relative position and angles of a camera pair by:
 %       1) Dividing space into subwindow bins (a 3d space).
@@ -45,6 +45,12 @@ function [center votes_in_window] = estimate_parameters_2(camera_relation_votes,
 % and allow the median filter to do its job better.
 num_subbins_per_dim = 9;
 
+%If no input, bail early. Otherwise will get errors with code below.
+if size(camera_relation_votes,1) == 0
+    center =[];
+    votes_in_window=[];
+    return;
+end
 
 %Figure out the minimum fraction of required points in the best window
 %to accept, as a function of the number of votes.
