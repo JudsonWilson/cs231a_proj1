@@ -47,9 +47,16 @@ u=ones(N,1);
 
 P = eye(N) - u*(u')/N;
 
-Q = -1/2*P*Dfull_sqr*P;
+Q = (-1/2)*P*Dfull_sqr*P;
 
-[V,S] = eigs(Q,2);
+%  opts.tol = 1e-7;
+%  opts.maxit = 1e5;
+%  opts.disp = 1;
+%  [V,S] = eigs(Q,2,'lr', opts);
+
+power_iterations = 1000;
+[V sigma] = powmeth_rightvecs(Q,2,power_iterations);
+S = diag(sigma);
 
 %Force eigenvectors into a certain orientation for display purposes
 for i=1:2
