@@ -134,6 +134,10 @@ int main(int argc, char* argv[])
     
     // Simulate
     do {
+        // Print Global Time every minute
+        if (sim->getGlobalTime()%60 == 0) {
+            cout << "Simulation Time: " << sim->getGlobalTime() << endl;
+        }
         // Add Agents (if necessary)
         if (_VERBOSE_)
             cout << "Update Agents" << endl;
@@ -532,7 +536,9 @@ void setPreferredVelocities(RVO::RVOSimulator* sim,
                 sim->setAgentPrefVelocity(i, RVO::Vector2(0.0f, 0.0f));
                 // First time at goal, reduce number of active agents, and set reachedSecondaryGoal to TRUE
                 if (!reachedSecondaryGoal[i]) {
-                    numActiveAgents -= 1;
+                    //***************CHANGED TO INCREASE THE FREQUENCY OF AGENTS*************************
+                    //numActiveAgents -= 1;
+                    //***********************************************************************************
                     reachedSecondaryGoal[i] = true;
                 }
             } else {
@@ -544,6 +550,9 @@ void setPreferredVelocities(RVO::RVOSimulator* sim,
             if (absSq(goals[i][0] - sim->getAgentPosition(i)) < (sim->getTimeStep() * sim->getAgentMaxSpeed(i)) * (sim->getTimeStep() * sim->getAgentMaxSpeed(i))) {
                 //Agent is within (max speed * timestep) of its primary goal, head to secondary goal
                 reachedPrimaryGoal[i] = true;
+                //***************CHANGED TO INCREASE THE FREQUENCY OF AGENTS*************************
+                numActiveAgents -= 1;
+                //***********************************************************************************
                 sim->setAgentPrefVelocity(i, sim->getAgentMaxSpeed(i)*normalize(goals[i][1] - sim->getAgentPosition(i)));
             } else {
                 // Agent is far away from its goal, set preferred velocity as unit vector times max speed towards agent's goal
