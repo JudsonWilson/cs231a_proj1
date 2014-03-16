@@ -2,7 +2,7 @@
 .SUFFIXES: .cpp .o
 
 CXX = g++
-CXXFLAGS = -Wall -g -O2
+CXXFLAGS = -Wall -g -O2 -std=c++11
 RM = rm -f
 INCLUDES = -I./RVO2/src
 LIBS = ./RVO2/src/libRVO.a
@@ -10,7 +10,7 @@ PROGRAMS = test parser sim
 
 all: $(PROGRAMS)
 
-sim: sim.o parser.o
+sim: parser.o sim.o 
 	$(RM) sim
 	$(CXX) $(INCLUDES) $(CXXFLAGS) -o $@ sim.o parser.o $(LIBS)
 
