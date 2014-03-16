@@ -633,9 +633,9 @@ int inCameraFOV(int camNum,
         }
     }
     
-    // Add tracklet ID to cameraUniqueTracklets
+    // Add tracklet ID to cameraUniqueTracks
     if (trackletInCam) {
-        cameraUniqueTracklets[camNum].push_back(trackNum);
+        cameraUniqueTracks[camNum].push_back(trackNum);
     }
     
     // Return
@@ -654,12 +654,14 @@ int getCameraTracklets(vector< vector<float> > cameraLocations)
     
     // Find tracklets contained in each camera's field of view
     for (size_t i = 0; i < cameraLocations.size(); i++) {
-        // Initialize Camera in cameraTracks
+        // Initialize Camera in cameraTracks, cameraUniqueTracks
         vector<float> firstRow;
         firstRow.push_back(i);  // Camera Number
         vector< vector<float> > cameraTrack;
         cameraTrack.push_back(firstRow);
         cameraTracks.push_back(cameraTrack);
+        vector<float> trackIDsInCam;
+        cameraUniqueTracks.push_back(trackIDsInCam);
         
         // Determine Camera's Vertices
         float x0 = cameraLocations[i][0];
