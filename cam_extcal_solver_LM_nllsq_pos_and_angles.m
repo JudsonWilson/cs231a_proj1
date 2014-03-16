@@ -50,8 +50,8 @@ start_locations_reflected = start_locations_unreflected;
 start_locations_reflected(:,1) = -start_locations_reflected(:,1);
 
 
-MDS_MAP_position_cost= calculate_camera_positions_cost(camera_distance_estimates,...
-                                                start_locations_unreflected)
+%MDS_MAP_position_cost= calculate_camera_positions_cost(camera_distance_estimates,...
+%                                                start_locations_unreflected)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Calculate the LM result.
@@ -88,7 +88,10 @@ for s=1:2
 %    [C,ssq,cnt] = LMFnlsq('LM_nllsq_cost_dist_and_angles', ...
 %                           starting_solution,'Display',1);
 
-    C = lsqnonlin(@LM_nllsq_cost_dist_and_angles, starting_solution);
+    options = optimset('Algorithm','levenberg-marquardt', ...
+                       'Display','off');
+    C = lsqnonlin(@LM_nllsq_cost_dist_and_angles, starting_solution, ...
+                   [], [], options);
 
     %C is in the stacked vector format, turn it into a vertical list of row
     % vectors
@@ -96,8 +99,8 @@ for s=1:2
                                                2, num_cameras)';
     solved_cam_angles_unreflected = C((num_cameras*2+1):end);
 
-    LMFnlsq_cost= calculate_camera_positions_cost(camera_distance_estimates,...
-                                              solved_cam_positions_unreflected)
+%    LMFnlsq_cost= calculate_camera_positions_cost(camera_distance_estimates,...
+%                                              solved_cam_positions_unreflected)
 
     solved_cam_positions{s} = solved_cam_positions_unreflected;
     solved_cam_angles{s} = solved_cam_angles_unreflected;
@@ -108,7 +111,7 @@ for s=1:2
     angle_cost = calculate_camera_angles_cost(...
                                    camera_angle_estimates, ...
                                    solved_cam_angles{s}, ...
-                                   solved_cam_positions{s})
+                                   solved_cam_positions{s});
     summed_cost(s) = pos_cost + angle_cost;
 end
 

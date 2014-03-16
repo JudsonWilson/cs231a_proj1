@@ -1,4 +1,4 @@
-function [estimated_cameras, camera_relation_votes_and_centers] ...
+function [estimated_cameras, costs, camera_relation_votes_and_centers] ...
                          = solve_cameras_extcal(correspondences, algorithm)
 %SOLVE_CAMERAS_EXTCAL Takes in a bunch of correspondences, and using the
 %chosen algorithm, estimates the external calibration of all the cameras up
@@ -198,6 +198,22 @@ switch algorithm
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Calculate Cost Functions
+%  - Do this in here, as we remove the centroid offset before returning
+%    which makes calculating these cost functions impossible.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+costs.distances = calculate_camera_positions_cost(...
+                         pairwise_centered_camera_distance_estimates,...
+                         estimated_locations );
+
+costs.angles = calculate_camera_angles_cost( ...
+                         pairwise_centered_camera_angle_estimates, ...
+                         estimated_angles, ...
+                         estimated_locations);
+
+costs.sum = costs.distances + costs.angles;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Create results structure
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -208,13 +224,13 @@ fov_poly.y = [0 -6  6 0];
 %Make an array of estimated cameras, making sure to undo the centering
 % step where we un-offset the centroid
 for c=1:num_cameras
-    cam.fov_poly_rel = fov_poly;
+    new_cam.fov_poly_rel = fov_poly;
     a = estimated_angles(c);
     rotated_centroid = [cos(a) -sin(a); sin(a) cos(a)] * centroids(c,:)';
-    cam.calib.x = estimated_locations(c,1) - rotated_centroid(1);
-    cam.calib.y = estimated_locations(c,2) - rotated_centroid(2);
-    cam.calib.theta = estimated_angles(c);
-    estimated_cameras(c) = camera_put_in_world(cam);
+    new_cam.calib.x = estimated_locations(c,1) - rotated_centroid(1);
+    new_cam.calib.y = estimated_locations(c,2) - rotated_centroid(2);
+    new_cam.calib.theta = estimated_angles(c);
+    estimated_cameras(c) = camera_put_in_world(new_cam);
 end
 
 %Camera relation votes and centers
