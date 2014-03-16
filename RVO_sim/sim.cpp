@@ -36,6 +36,13 @@ vector< vector<float> > groundTruthTracks;
 //  [[cam#,0,0,0],[x0,y0,t0,tr#],[x1,y1,t1,tr#], ... ]]
 vector< vector< vector<float> > > cameraTracks;
 
+// Store Tracklet IDs by camera
+// [[id0cam0,id1cam0,...,idMcam0],
+//  [id0cam1,id1cam1,...,idKcam1],
+//  ...,
+//  [id0camN,id1camN,...,idLcamN]]
+vector< vector<float> > cameraUniqueTracks;
+
 // Create Random Number Gen
 default_random_engine generator;
 uniform_real_distribution<float> distribution(0.0,1.0);
@@ -124,9 +131,18 @@ int main(int argc, char* argv[])
         cout << "Unable to setup scenario" << endl;
         return 1;
     }
-    
+   
+    // Time Constant 
+    float prevTime = 0.0f;
+
     // Simulate
     do {
+        // Print Global Time every minute
+        if (sim->getGlobalTime() > prevTime + 120.0f) {
+	    prevTime = sim->getGlobalTime() - fmod(sim->getGlobalTime(),60.0f);
+            cout << "Simulation Time: " << sim->getGlobalTime()/60.0f << " min" << endl;
+        }
+	
         // Add Agents (if necessary)
         if (_VERBOSE_)
             cout << "Update Agents" << endl;
@@ -168,10 +184,10 @@ int main(int argc, char* argv[])
     tmp = writeTracks(outFilename);
     
     // Track Stats
-    cout << "Num Tracks: " << groundTruthTracks.size() << endl;
-    cout << "Tracks Samples by cam: ";
-    for (size_t i = 0; i < cameraTracks.size(); i++) {
-        cout << cameraTracks[i].size() << " ";
+    cout << "Total Num Tracks: " << groundTruthTracks.size() << endl;
+    cout << "Num Tracks by cam: ";
+    for (size_t i = 0; i < cameraUniqueTracks.size(); i++) {
+        cout << cameraUniqueTracks[i].size() << " ";
     }
     cout << endl;
     
@@ -525,7 +541,9 @@ void setPreferredVelocities(RVO::RVOSimulator* sim,
                 sim->setAgentPrefVelocity(i, RVO::Vector2(0.0f, 0.0f));
                 // First time at goal, reduce number of active agents, and set reachedSecondaryGoal to TRUE
                 if (!reachedSecondaryGoal[i]) {
-                    numActiveAgents -= 1;
+                    //***************CHANGED TO INCREASE THE FREQUENCY OF AGENTS*************************
+                    //numActiveAgents -= 1;
+                    //***********************************************************************************
                     reachedSecondaryGoal[i] = true;
                 }
             } else {
@@ -537,6 +555,9 @@ void setPreferredVelocities(RVO::RVOSimulator* sim,
             if (absSq(goals[i][0] - sim->getAgentPosition(i)) < (sim->getTimeStep() * sim->getAgentMaxSpeed(i)) * (sim->getTimeStep() * sim->getAgentMaxSpeed(i))) {
                 //Agent is within (max speed * timestep) of its primary goal, head to secondary goal
                 reachedPrimaryGoal[i] = true;
+                //***************CHANGED TO INCREASE THE FREQUENCY OF AGENTS*************************
+                numActiveAgents -= 1;
+                //***********************************************************************************
                 sim->setAgentPrefVelocity(i, sim->getAgentMaxSpeed(i)*normalize(goals[i][1] - sim->getAgentPosition(i)));
             } else {
                 // Agent is far away from its goal, set preferred velocity as unit vector times max speed towards agent's goal
@@ -563,6 +584,9 @@ int inCameraFOV(int camNum,
     
     // Capture Track Information
     float trackID = groundTruthTracks[trackNum][1];
+    
+    // Keep track of whether tracklet is in this camera
+    size_t trackletInCam = 0;
     
     // Find all points in this track which fall in this camera's FOV
     for (size_t i = 0; i < groundTruthTracks[trackNum].size()/3-1; i++) {
@@ -606,6 +630,9 @@ int inCameraFOV(int camNum,
         
         // Capture Point if in polygon
         if (validSignFlag) {
+            // Update status of the tracklet occuring in this camera
+            trackletInCam = 1;
+            
             // Convert groundTrack point to camera frame
             RVO::Vector2 p_cam = RVO::Vector2(inv_rotation[0]*(p-camCenter),
                                               inv_rotation[1]*(p-camCenter));
@@ -618,6 +645,11 @@ int inCameraFOV(int camNum,
             // Add to cameraTracks
             cameraTracks[camNum].push_back(point);
         }
+    }
+    
+    // Add tracklet ID to cameraUniqueTracks
+    if (trackletInCam) {
+        cameraUniqueTracks[camNum].push_back(trackNum);
     }
     
     // Return
@@ -636,12 +668,14 @@ int getCameraTracklets(vector< vector<float> > cameraLocations)
     
     // Find tracklets contained in each camera's field of view
     for (size_t i = 0; i < cameraLocations.size(); i++) {
-        // Initialize Camera in cameraTracks
+        // Initialize Camera in cameraTracks, cameraUniqueTracks
         vector<float> firstRow;
         firstRow.push_back(i);  // Camera Number
         vector< vector<float> > cameraTrack;
         cameraTrack.push_back(firstRow);
         cameraTracks.push_back(cameraTrack);
+        vector<float> trackIDsInCam;
+        cameraUniqueTracks.push_back(trackIDsInCam);
         
         // Determine Camera's Vertices
         float x0 = cameraLocations[i][0];
@@ -733,7 +767,7 @@ int writeTracks(char* outFilename)
                 camOutFile << cameraTrack[pointInd][0] << " "
                 << cameraTrack[pointInd][1] << " "
                 << cameraTrack[pointInd][2] << " "
-                << cameraTrack[pointInd][3] << "\n";
+                << cameraTrack[pointInd][3]*1000 << "\n";
             }
         } else {
             cout << "ERROR - Unable to write camera tracks to " << camOutFilenameString << endl;

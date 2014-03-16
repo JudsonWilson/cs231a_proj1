@@ -106,18 +106,26 @@ if isempty(data_filename)
     clear temp_cameras;
 end
 
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Position and Angle Solving
 % - Note that position methods below are optimal up to a reflection,
 %   so calculate both, then pick the one that gives the best angles.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+algo = 'MDS-MAP';
+%algo = 'SDP';
+%algo = 'LM-nllsq-PtA'; %Positions THEN Angles (probably don't use)
+%algo = 'LM-nllsq-PaA'; %Positions AND Angles
 
-[estimated_cameras, camera_relation_votes_and_centers] ...
-    = solve_cameras_extcal(correspondences, 'MDS-MAP');
+[estimated_cameras, costs, camera_relation_votes_and_centers] ...
+    = solve_cameras_extcal(correspondences, algo);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plot the Camera Relation Votes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
 
 %Plot relationship votes from camera 1 to camera 2
 figure(2); clf;
@@ -190,6 +198,13 @@ if ~isempty(ground_truth) && ~isempty(ground_truth.cameras)
     %Plot the estimated locations, rotated and shifted to align with the
     %original locations, for display purposes
     plot(aligned_estimated_locations(:,1), aligned_estimated_locations(:,2),'bd');
+    %Make connector lines, and number the cameras
+    for i = 1:size(aligned_estimated_locations,1)
+        plot([aligned_estimated_locations(i,1); groundtruth_locations(i,1)],...
+             [aligned_estimated_locations(i,2); groundtruth_locations(i,2)],...
+             'r:');
+        text( groundtruth_locations(i,1),  groundtruth_locations(i,2), num2str(i))
+    end
 else
     %No groundtruth? don't do procrustes
     aligned_estimated_locations = estimated_locations;

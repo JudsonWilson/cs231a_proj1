@@ -1,4 +1,4 @@
-function [estimated_cameras, camera_relation_votes_and_centers] ...
+function [estimated_cameras, costs, camera_relation_votes_and_centers] ...
                          = solve_cameras_extcal(correspondences, algorithm)
 %SOLVE_CAMERAS_EXTCAL Takes in a bunch of correspondences, and using the
 %chosen algorithm, estimates the external calibration of all the cameras up
@@ -138,7 +138,7 @@ for i=1:num_cameras
     estimates_r(i,i) = 0;
     estimates_theta(i,i) = 0; %meaningless?
     for j=(i+1):num_cameras
-        [e, votes_in_window{i,j}] = estimate_parameters_3(all_centered_camera_relation_votes{i,j},200,1);
+        [e, votes_in_window{i,j}] = estimate_parameters_3(all_centered_camera_relation_votes{i,j});
         %Only create an estimate if we found a good vote
         if ~isempty(e)
             estimates_theta(i,j) = e(1);
@@ -170,62 +170,48 @@ end
 
 switch algorithm
     case 'MDS-MAP'
-        estimated_locations_unreflected = cam_pos_solver_MDS_MAP(...
-                      num_cameras, pairwise_centered_camera_distance_estimates);
+        [estimated_locations, estimated_angles] ...
+            = cam_extcal_solver_MDS_MAP( ...
+                      num_cameras, ...
+                      pairwise_centered_camera_distance_estimates, ...
+                      pairwise_centered_camera_angle_estimates);
     case 'SDP'
-        estimated_locations_unreflected ...
-            = cam_pos_solver_SDP1_alternating_anchors( ...
-                      num_cameras, pairwise_centered_camera_distance_estimates);
-    case 'LM-nllsq'
-        estimated_locations_unreflected = cam_pos_solver_LM_nllsq( ...
-                      num_cameras, pairwise_centered_camera_distance_estimates);
+        [estimated_locations, estimated_angles] ...
+            = cam_extcal_solver_SDP1_alternating_anchors( ...
+                      num_cameras, ...
+                      pairwise_centered_camera_distance_estimates, ...
+                      pairwise_centered_camera_angle_estimates);
+    case 'LM-nllsq-PaA'
+        [estimated_locations, estimated_angles] ...
+            = cam_extcal_solver_LM_nllsq_pos_and_angles( ...
+                      num_cameras, ...
+                      pairwise_centered_camera_distance_estimates, ...
+                      pairwise_centered_camera_angle_estimates);
+    case 'LM-nllsq-PtA'
+        [estimated_locations, estimated_angles] ...
+            = cam_extcal_solver_LM_nllsq_pos_then_angles( ...
+                      num_cameras, ...
+                      pairwise_centered_camera_distance_estimates, ...
+                      pairwise_centered_camera_angle_estimates);
     otherwise
         error(['Unknown algorithm!: ' algorithm]);
 end
 
-%
-% Calculate Reflection of Best Position - Reflext about x axis.
-%
-estimated_locations_reflected = estimated_locations_unreflected;
-estimated_locations_reflected(:,1) = -estimated_locations_reflected(:,1);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Calculate Cost Functions
+%  - Do this in here, as we remove the centroid offset before returning
+%    which makes calculating these cost functions impossible.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+costs.distances = calculate_camera_positions_cost(...
+                         pairwise_centered_camera_distance_estimates,...
+                         estimated_locations );
 
-%
-% Calculate Angles - Using both the original and reflected positions.
-%
-estimated_angles_unreflected = cam_angle_from_pos_solver( ...
-                                      num_cameras, ...
-                                      estimated_locations_unreflected, ...
-                                      pairwise_centered_camera_angle_estimates );
-estimated_angles_reflected = cam_angle_from_pos_solver( ...
-                                      num_cameras, ...
-                                      estimated_locations_reflected, ...
-                                      pairwise_centered_camera_angle_estimates );
+costs.angles = calculate_camera_angles_cost( ...
+                         pairwise_centered_camera_angle_estimates, ...
+                         estimated_angles, ...
+                         estimated_locations);
 
-%
-%Compute the angle cost function for both cases
-%
-cost_unreflected = calculate_camera_angles_cost(...
-                                   pairwise_centered_camera_angle_estimates, ...
-                                   estimated_angles_unreflected, ...
-                                   estimated_locations_unreflected);
-cost_reflected = calculate_camera_angles_cost(...
-                                   pairwise_centered_camera_angle_estimates, ...
-                                   estimated_angles_reflected, ...
-                                   estimated_locations_reflected);
-
-%
-% Keep the results with the best (lowest) cost function.
-%
-if cost_reflected < cost_unreflected
-    %fprintf('Keeping reflected\n');
-    estimated_locations = estimated_locations_reflected;
-    estimated_angles = estimated_angles_reflected;
-else
-    %fprintf('Keeping unreflected\n');
-    estimated_locations = estimated_locations_unreflected;
-    estimated_angles = estimated_angles_unreflected;
-end
-
+costs.sum = costs.distances + costs.angles;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Create results structure
@@ -238,13 +224,13 @@ fov_poly.y = [0 -6  6 0];
 %Make an array of estimated cameras, making sure to undo the centering
 % step where we un-offset the centroid
 for c=1:num_cameras
-    cam.fov_poly_rel = fov_poly;
+    new_cam.fov_poly_rel = fov_poly;
     a = estimated_angles(c);
     rotated_centroid = [cos(a) -sin(a); sin(a) cos(a)] * centroids(c,:)';
-    cam.calib.x = estimated_locations(c,1) - rotated_centroid(1);
-    cam.calib.y = estimated_locations(c,2) - rotated_centroid(2);
-    cam.calib.theta = estimated_angles(c);
-    estimated_cameras(c) = camera_put_in_world(cam);
+    new_cam.calib.x = estimated_locations(c,1) - rotated_centroid(1);
+    new_cam.calib.y = estimated_locations(c,2) - rotated_centroid(2);
+    new_cam.calib.theta = estimated_angles(c);
+    estimated_cameras(c) = camera_put_in_world(new_cam);
 end
 
 %Camera relation votes and centers

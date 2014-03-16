@@ -37,7 +37,7 @@ best_locations = cam_pos_solver_MDS_MAP(num_cameras, ...
 best_cost = calculate_camera_positions_cost(camera_distance_estimates, ...
                                              best_locations); 
 
-fprintf('MDS-MAP cost: %f \n', best_cost);
+%fprintf('MDS-MAP cost: %f \n', best_cost);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Choose 3 random cameras as anchors, try algorithm, update the result
@@ -59,14 +59,14 @@ while runs_without_improvement < 20
         error('unreal cam_pos_solver_SDP1_3plusanchors result!');
     end
     
-    fprintf('Resulting SDP1 cost: %f ', new_cost);
+%    fprintf('Resulting SDP1 cost: %f ', new_cost);
     if new_cost < best_cost
-        fprintf('Keeping new results!\n');
+%        fprintf('Keeping new results!\n');
         best_locations = new_locations;
         best_cost = new_cost;
         runs_without_improvement = 0;
     else
-        fprintf('Rejecting new results!\n');
+%        fprintf('Rejecting new results!\n');
         runs_without_improvement = runs_without_improvement + 1;
     end
 end

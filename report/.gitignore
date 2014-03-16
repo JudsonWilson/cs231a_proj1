@@ -1,0 +1,4 @@
+#Comment line, do not use for anything else!
+*.aux
+*.log
+*.gz
