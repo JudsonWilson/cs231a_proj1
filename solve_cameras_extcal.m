@@ -208,13 +208,13 @@ fov_poly.y = [0 -6  6 0];
 %Make an array of estimated cameras, making sure to undo the centering
 % step where we un-offset the centroid
 for c=1:num_cameras
-    cam.fov_poly_rel = fov_poly;
+    new_cam.fov_poly_rel = fov_poly;
     a = estimated_angles(c);
     rotated_centroid = [cos(a) -sin(a); sin(a) cos(a)] * centroids(c,:)';
-    cam.calib.x = estimated_locations(c,1) - rotated_centroid(1);
-    cam.calib.y = estimated_locations(c,2) - rotated_centroid(2);
-    cam.calib.theta = estimated_angles(c);
-    estimated_cameras(c) = camera_put_in_world(cam);
+    new_cam.calib.x = estimated_locations(c,1) - rotated_centroid(1);
+    new_cam.calib.y = estimated_locations(c,2) - rotated_centroid(2);
+    new_cam.calib.theta = estimated_angles(c);
+    estimated_cameras(c) = camera_put_in_world(new_cam);
 end
 
 %Camera relation votes and centers
