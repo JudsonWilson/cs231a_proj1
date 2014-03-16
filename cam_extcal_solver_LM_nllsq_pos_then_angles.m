@@ -1,11 +1,13 @@
 function [solved_cam_positions, solved_cam_angles]...
-               = cam_extcal_solver_LM_nllsq( num_cameras, ...
+               = cam_extcal_solver_LM_nllsq_pos_then_angles(...
+                                          num_cameras, ...
                                           camera_distance_estimates, ...
                                           camera_angle_estimates)
-%CAM_EXTCAL_SOLVER_LM_NLLSQ Estimate camera positions using LM Non-Linear
-%Least Squares, aka Levenberg–Marquardt algorithm (LMA). Then solve
-%angles using the angle averaging method. Choose the best solution
-%from this solution, or the reflected, and re-angle-averaged solution.
+%CAM_EXTCAL_SOLVER_LM_NLLSQ_POS_THEN_ANGLES Estimate camera positions using
+%LM Non-Linear Least Squares, aka Levenberg–Marquardt algorithm (LM).
+%Then solve angles using the angle averaging method. Choose the best
+%solution from this solution, or the reflected, and re-angle-averaged
+%solution.
 %
 %Calls a 3rd-party solver: "LMFnlsq - Solution of nonlinear least squares"
 %by Miroslav Balda available MathWorks MATLAB Central website.
@@ -54,7 +56,12 @@ MDS_MAP_cost= calculate_camera_positions_cost(camera_distance_estimates,...
 MDS_MAP_locations_stackedvector = MDS_MAP_locations';
 MDS_MAP_locations_stackedvector = MDS_MAP_locations_stackedvector(:);
 
-[C,ssq,cnt] = LMFnlsq('LM_nllsq_cost', MDS_MAP_locations_stackedvector);
+%use this call if your matlab doesn have lsqnonlin.
+%lsqnonlin seems to work a lot better
+%[C,ssq,cnt] = LMFnlsq('LM_nllsq_cost_dist_only', ...
+%                      MDS_MAP_locations_stackedvector);
+
+C = lsqnonlin(@LM_nllsq_cost_dist_only, MDS_MAP_locations_stackedvector);
 
 %C is in the stacked vector format, turn it into a vertical list of row
 % vectors

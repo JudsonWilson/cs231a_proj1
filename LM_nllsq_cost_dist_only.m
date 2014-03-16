@@ -1,6 +1,6 @@
-function [ residuals ] = LM_nllsq_cost( positions_stacked )
-%LM_NLLSQ_COST Cost function unsed by LMFnlsq solver in the function
-%  cam_pos_solver_LM_nllsq.
+function [ residuals ] = LM_nllsq_cost_dist_only( positions_stacked )
+%LM_NLLSQ_COST_DIST_ONLY Cost function unsed by LMFnlsq solver in the
+% function cam_pos_solver_LM_nllsq.
 %
 %This cost function calculates a cost for each camera distance that
 %we are using as an optimization criteria. If we have a distance contraint
