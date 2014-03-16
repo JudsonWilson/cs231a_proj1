@@ -767,7 +767,7 @@ int writeTracks(char* outFilename)
                 camOutFile << cameraTrack[pointInd][0] << " "
                 << cameraTrack[pointInd][1] << " "
                 << cameraTrack[pointInd][2] << " "
-                << cameraTrack[pointInd][3] << "\n";
+                << cameraTrack[pointInd][3]*1000 << "\n";
             }
         } else {
             cout << "ERROR - Unable to write camera tracks to " << camOutFilenameString << endl;
