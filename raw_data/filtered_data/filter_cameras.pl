@@ -20,12 +20,20 @@ my $num_active_tracklets_per_quanta = 20;
 my $stats = 0;
 my $unfiltered = 0;
 my $path_to_files = "../cams with topo/";
+my $cam_file_name = "cam";
 
-GetOptions("q=i" => \$quantum,
-           "num=i" => \$num_active_tracklets_per_quanta,
-           "stats" => \$stats,
-           "unfiltered" => \$unfiltered,
-           "path" => \$path_to_files);
+GetOptions("q=i" => \$quantum,                           # time window length
+
+           "num=i" => \$num_active_tracklets_per_quanta, # number of active tracks per time window
+           
+           "stats" => \$stats,                    # prints stats to terminal
+
+           "unfiltered" => \$unfiltered,          # doesnt filter by time windows. still filters out long tracks
+
+           "path=s" => \$path_to_files,           # the path to the directory holding the camera csv files. doesnt need '/' at the end, it will be added
+
+           "cam_file_name=s" => \$cam_file_name); # NEEDED if filename is NOT 'cam#.csv'. if your filename is 'old_cam#.csv' set this to 'old_cam'.
+                                                  # note: the filename MUST end in #.csv, you can only change the prefix
 
 
 ################################
@@ -122,6 +130,7 @@ sub gather_tracklet_stats {
   foreach (keys %$raw_data) {
     my $tracklet = $raw_data->{$_};
     my $length = $tracklet->[-1][2] - $tracklet->[0][2]; 
+    next if scalar @$tracklet == 1;
     $ave_length += $length;
     $min_length = $length if $length < $min_length;
     $max_length = $length if $length > $max_length;
@@ -130,7 +139,7 @@ sub gather_tracklet_stats {
     my $delta_y = $tracklet->[-1][1] - $tracklet->[0][1];
     my $distance = sqrt($delta_x*$delta_x + $delta_y*$delta_y);
     $ave_distance_per_time += $distance/$length;
-    
+
   }
   $ave_length /= scalar (keys %$raw_data) if scalar (keys %$raw_data);
   $ave_distance_per_time /= scalar (keys %$raw_data) if scalar (keys %$raw_data);
@@ -160,10 +169,11 @@ sub read_raw_data {
  #  die "bad filename: $fname" unless $fname =~ /(.*\/)*cam(\d+)\.csv/;
  #  my $cam = $2;
     foreach my $cam (@ARGV) {
-    my $fname = "${path_to_files}cam$cam.csv";
+    my $fname = "${path_to_files}${cam_file_name}${cam}.csv";
+    print "$fname\n";
     open FHANDLE, "<$fname" or die "couldn't open $fname for reading";
     while(<FHANDLE>) {
-      my($x, $y, $t, $id) = /(\d+) (\d+) (\d+) (\d+)/;
+      my($x, $y, $t, $id) = /([-]?\d*\.?\d*\d+e?[-+]?\d*)\s+([-]?\d*\.?\d*\d+e?[-+]?\d*)\s+([-]?\d*\.?\d*\d+e?[-+]?\d*)\s+([-]?\d*\.?\d*\d+e?[-+]?\d*)/; 
       push @{$raw_data->{"${cam}_${id}"}}, [$x,$y,$t];
       $min_time = $t if $min_time eq -1 or $t < $min_time;
       $max_time = $t if $t > $max_time;
