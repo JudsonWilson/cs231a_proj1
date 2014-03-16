@@ -163,7 +163,7 @@ sub read_raw_data {
     my $fname = "${path_to_files}cam$cam.csv";
     open FHANDLE, "<$fname" or die "couldn't open $fname for reading";
     while(<FHANDLE>) {
-      my($x, $y, $t, $id) = /(\d+\.?\d*) (\d+\.?\d*) (\d+\.?\d*) (\d+\.?\d*)/;
+      my($x, $y, $t, $id) = /(\d*\.?\d*\d+) (\d*\.?\d*\d+) (\d*\.?\d*\d+) (\d*\.?\d*\d+)/;
       push @{$raw_data->{"${cam}_${id}"}}, [$x,$y,$t];
       $min_time = $t if $min_time eq -1 or $t < $min_time;
       $max_time = $t if $t > $max_time;
