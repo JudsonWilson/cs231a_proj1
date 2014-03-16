@@ -39,6 +39,12 @@ for i=1:N
     Dfull(i,indices) = short_distances(indices);
 end
 
+%Fail on unconnected graph.
+if any(isinf(Dfull))
+    X = [];
+    return;
+end
+
 %Do MDS-MAP
 
 Dfull_sqr = Dfull.^2;
