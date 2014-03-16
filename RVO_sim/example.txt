@@ -1,11 +1,11 @@
 # 0 - Sim Details
 Timestep=0.025
-LengthOfSim=10000
+LengthOfSim=1000
 
 # 1 - Agent Details
 radius = 0.25
 maxSpeed = 3
-numActiveAgents = 5
+numActiveAgents = 10
 
 # 2 - Scene Description (Obstacles)
 (-100,-100);(  19,-100);(  19,  17);(-100,  17);

@@ -131,13 +131,18 @@ int main(int argc, char* argv[])
         cout << "Unable to setup scenario" << endl;
         return 1;
     }
-    
+   
+    // Time Constant 
+    float prevTime = 0.0f;
+
     // Simulate
     do {
         // Print Global Time every minute
-        if (sim->getGlobalTime()%60 == 0) {
-            cout << "Simulation Time: " << sim->getGlobalTime() << endl;
+        if (sim->getGlobalTime() > prevTime + 120.0f) {
+	    prevTime = sim->getGlobalTime() - fmod(sim->getGlobalTime(),60.0f);
+            cout << "Simulation Time: " << sim->getGlobalTime()/60.0f << " min" << endl;
         }
+	
         // Add Agents (if necessary)
         if (_VERBOSE_)
             cout << "Update Agents" << endl;
