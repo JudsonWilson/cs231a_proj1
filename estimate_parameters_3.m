@@ -1,4 +1,4 @@
-function [center votes_in_window] = estimate_parameters_2(camera_relation_votes, num_bins, blur_factor)
+function [center votes_in_window] = estimate_parameters_3(camera_relation_votes)
 %
 % Jointly estimate the relative position and angles of a camera pair by:
 %       1) Dividing space into subwindow bins (a 3d space).
@@ -45,17 +45,23 @@ function [center votes_in_window] = estimate_parameters_2(camera_relation_votes,
 % and allow the median filter to do its job better.
 num_subbins_per_dim = 9;
 
+%If no input, bail early. Otherwise will get errors with code below.
+if size(camera_relation_votes,1) == 0
+    center =[];
+    votes_in_window=[];
+    return;
+end
 
 %Figure out the minimum fraction of required points in the best window
 %to accept, as a function of the number of votes.
 if size(camera_relation_votes,1) < 5
     min_fraction_in_sliding_window = 1.1; %Reject less than 5 votes
 elseif size(camera_relation_votes,1) < 10
-    min_fraction_in_sliding_window = 0.5; %Reject less than 5 votes
-elseif size(camera_relation_votes,1) < 15
-    min_fraction_in_sliding_window = 0.3; %Reject less than 5 votes
+    min_fraction_in_sliding_window = 0.5;
+%elseif size(camera_relation_votes,1) < 15
+%    min_fraction_in_sliding_window = 0.3;
 else
-    min_fraction_in_sliding_window = 0.1; %Reject less than 5 votes
+    min_fraction_in_sliding_window = 0.25;
 end
 
 
@@ -82,7 +88,7 @@ r_bin_starts = [0:r_subbin_size:(r_max+r_subbin_size - 0.000001)]; % and go 1 fa
 
 %Put votes in appropriate bins
 vote_hist = zeros(angle_num_subbins, r_num_subbins, angle_num_subbins);
-for i=1:length(camera_relation_votes)
+for i=1:size(camera_relation_votes,1)
     vote = camera_relation_votes(i,:);
     vote(1) = mod(vote(1), 2*pi);
     vote(3) = mod(vote(3), 2*pi);
@@ -129,6 +135,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if s_binvotes(1) < length(camera_relation_votes) * min_fraction_in_sliding_window
     center = [];
+    votes_in_window = [];
     return;
 end
 
@@ -137,7 +144,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 [x,y,z] = ind2sub(size(window_hist), s_bininds(1));
-bin_inds = [x y z]
+bin_inds = [x y z];
 %Loop over dims, find the start and end indices of the window in the
 %histogram
 for i=1:3
@@ -210,16 +217,16 @@ relevent_votes = camera_relation_votes(votes_in_window,:);
 for dim=[1,3]
     %Only offset votes if they span a boarder, otherwise could cause
     %problems
-    if any(relevent_votes(:,dim) > pi) ...
-    && any(relevent_votes(:,dim) < -pi)
+    if ~any(-pi/3 <= relevent_votes(:,dim) & relevent_votes(:,dim) < pi/3)
         %Move the negative votes to be by +pi by adding 2*pi
-        relevent_votes( relevent_votes(:,dim) < 0) ...
-            = relevent_votes( relevent_votes(:,dim) < -pi) + 2*pi;
+        add_indices = relevent_votes(:,dim) < 0;
+        relevent_votes(add_indices, dim) ...
+            = relevent_votes(add_indices, dim) + 2*pi;
     end
 end
 
 %Do the centering step, using the median
-center = median(camera_relation_votes(votes_in_window,:),1);
+center = median(relevent_votes,1);
 
 %Bring back angles to the range -pi to pi, if offsetting pushed them higher
 if center(1) > pi
