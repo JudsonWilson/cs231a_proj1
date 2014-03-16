@@ -24,10 +24,12 @@ data_filename = [];
 % data_filename is an empty array.
 %
 
-%Set this to 1 to see what happens with one set of correspondences. Set
+%Set this to 1 to see what happens with one track. Set
 % to 100-1000 to start seeing statistically meaningful results.
-number_of_correspondences = 1000;
-%number_of_correspondences = 10;
+%Note some of these tracks (depending on settings below) will overlap
+%in time windows and create more false correspondences.
+number_of_tracks = 100;
+%number_of_tracks = 10;
 
 %This is sort of "starting point" for track velocity, probably
 %leave it at 1 for now
@@ -96,7 +98,7 @@ if isempty(data_filename)
     hold on;
     [ correspondences, ground_truth ] = ...
           generate_fake_test_data(temp_cameras,...
-                                  number_of_correspondences, ...
+                                  number_of_tracks, ...
                                   track_velocity_factor, ...
                                   track_non_constant_factor, ...
                                   track_observation_variance_scale, ...
