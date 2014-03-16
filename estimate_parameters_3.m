@@ -57,11 +57,11 @@ end
 if size(camera_relation_votes,1) < 5
     min_fraction_in_sliding_window = 1.1; %Reject less than 5 votes
 elseif size(camera_relation_votes,1) < 10
-    min_fraction_in_sliding_window = 0.5; %Reject less than 5 votes
+    min_fraction_in_sliding_window = 0.5;
 %elseif size(camera_relation_votes,1) < 15
-%    min_fraction_in_sliding_window = 0.3; %Reject less than 5 votes
+%    min_fraction_in_sliding_window = 0.3;
 else
-    min_fraction_in_sliding_window = 0.3; %Reject less than 5 votes
+    min_fraction_in_sliding_window = 0.25;
 end
 
 
