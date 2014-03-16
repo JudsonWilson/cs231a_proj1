@@ -1,4 +1,4 @@
-function [estimated_cameras, camera_relation_votes_and_centers] ...
+function [estimated_cameras, costs, camera_relation_votes_and_centers] ...
                          = solve_cameras_extcal(correspondences, algorithm)
 %SOLVE_CAMERAS_EXTCAL Takes in a bunch of correspondences, and using the
 %chosen algorithm, estimates the external calibration of all the cameras up
@@ -196,6 +196,22 @@ switch algorithm
     otherwise
         error(['Unknown algorithm!: ' algorithm]);
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Calculate Cost Functions
+%  - Do this in here, as we remove the centroid offset before returning
+%    which makes calculating these cost functions impossible.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+costs.distances = calculate_camera_positions_cost(...
+                         pairwise_centered_camera_distance_estimates,...
+                         estimated_locations );
+
+costs.angles = calculate_camera_angles_cost( ...
+                         pairwise_centered_camera_angle_estimates, ...
+                         estimated_angles, ...
+                         estimated_locations);
+
+costs.sum = costs.distances + costs.angles;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Create results structure

@@ -119,7 +119,7 @@ algo = 'MDS-MAP';
 %algo = 'LM-nllsq-PtA'; %Positions THEN Angles (probably don't use)
 %algo = 'LM-nllsq-PaA'; %Positions AND Angles
 
-[estimated_cameras, camera_relation_votes_and_centers] ...
+[estimated_cameras, costs, camera_relation_votes_and_centers] ...
     = solve_cameras_extcal(correspondences, algo);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
