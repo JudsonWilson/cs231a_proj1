@@ -22,12 +22,18 @@ my $unfiltered = 0;
 my $path_to_files = "../cams with topo/";
 my $cam_file_name = "cam";
 
-GetOptions("q=i" => \$quantum,
-           "num=i" => \$num_active_tracklets_per_quanta,
-           "stats" => \$stats,
-           "unfiltered" => \$unfiltered,
-           "path=s" => \$path_to_files,
-           "cam_file_name=s" => \$cam_file_name);
+GetOptions("q=i" => \$quantum,                           # time window length
+
+           "num=i" => \$num_active_tracklets_per_quanta, # number of active tracks per time window
+           
+           "stats" => \$stats,                    # prints stats to terminal
+
+           "unfiltered" => \$unfiltered,          # doesnt filter by time windows. still filters out long tracks
+
+           "path=s" => \$path_to_files,           # the path to the directory holding the camera csv files. doesnt need '/' at the end, it will be added
+
+           "cam_file_name=s" => \$cam_file_name); # NEEDED if filename is NOT 'cam#.csv'. if your filename is 'old_cam#.csv' set this to 'old_cam'.
+                                                  # note: the filename MUST end in #.csv, you can only change the prefix
 
 
 ################################
