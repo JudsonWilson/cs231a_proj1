@@ -34,6 +34,12 @@ end
 % (current) result.
 best_locations = cam_pos_solver_MDS_MAP(num_cameras, ...
                                         camera_distance_estimates);
+%Return empty if unconnected
+if isempty(best_locations)
+    solved_cam_positions = [];
+    return;
+end
+
 best_cost = calculate_camera_positions_cost(camera_distance_estimates, ...
                                              best_locations); 
 

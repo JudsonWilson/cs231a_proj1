@@ -45,6 +45,13 @@ glob_camera_distance_estimates = camera_distance_estimates;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 MDS_MAP_locations = cam_pos_solver_MDS_MAP(num_cameras, ...
                                            camera_distance_estimates );
+%Return empty if unconnected
+if isempty(MDS_MAP_locations)
+    solved_cam_positions = [];
+    solved_cam_angles = [];
+    return;
+end
+
 MDS_MAP_cost= calculate_camera_positions_cost(camera_distance_estimates,...
                                                 MDS_MAP_locations)
 
