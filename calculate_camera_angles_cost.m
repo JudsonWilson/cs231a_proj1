@@ -45,7 +45,7 @@ cost = 0;
 for c1=1:num_cameras
     %Loop through all the camera_angle_estimates and find ones for this
     %camera. Append these votes to the votes array
-    for i=1:length(pairwise_camera_angle_estimates)
+    for i=1:size(pairwise_camera_angle_estimates,1)
        if pairwise_camera_angle_estimates(i,1) == c1
            c2 = pairwise_camera_angle_estimates(i,2);
            absolute_pairwise_angle ...

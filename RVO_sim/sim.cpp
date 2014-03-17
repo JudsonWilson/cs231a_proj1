@@ -485,6 +485,7 @@ void updateVisualization(RVO::RVOSimulator* sim)
         if (_VERBOSE_)
             std::cout << loc << " ";
         // Store Position and time if agent isn't at final goal
+        // Position stored in decimeters and time in milliseconds
         if (!reachedSecondaryGoal[i]) {
             groundTruthTracks[i].push_back(loc.x());
             groundTruthTracks[i].push_back(loc.y());
@@ -652,7 +653,7 @@ int inCameraFOV(int camNum,
             vector<float> point;
             point.push_back(p_cam.x());
             point.push_back(p_cam.y());
-            point.push_back(t);
+            point.push_back(t*1000);
             point.push_back(trackID);
             // Add to cameraTracks
             cameraTracks[camNum].push_back(point);
@@ -782,9 +783,9 @@ int writeTracks(char* outFilename)
         if (camOutFile.is_open()) {
             // Write each point to its own line
             for (size_t pointInd = 1; pointInd < cameraTrack.size(); pointInd++) {
-                camOutFile << cameraTrack[pointInd][0]*10 << " "
-                << cameraTrack[pointInd][1]*10 << " "
-                << cameraTrack[pointInd][2]*1000 << " "
+                camOutFile << cameraTrack[pointInd][0] << " "
+                << cameraTrack[pointInd][1] << " "
+                << cameraTrack[pointInd][2] << " "
                 << cameraTrack[pointInd][3] << "\n";
             }
         } else {
