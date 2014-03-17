@@ -1,5 +1,5 @@
 %% Display the Scene
-clf
+% clf
 figure(1)
 axis([-75 175 -75 125])
 patch([-75 175 175 -75 -75],[-75 -75 125 125 -75],'b')
@@ -98,6 +98,9 @@ hold off
 x0 =    [ 27, 17, 38, 21, 27, 32, 38, 67, 50, 50, 50, 50, 57, 57, 73, 73, 81, 81];
 y0 =    [ 33, 17, 17, 17, 33, 17, 33, 17, 17, 33, 17, 33, 17, 33, 17, 33, 17, 33];
 theta = [225, 45,140, 20,-20, 20,-20,160, 20,-20, 20,-20, 20,-20, 20,-20, 20,-20].*pi/180;
+% x0 =    [ 21, 38];
+% y0 =    [ 17, 17];
+% theta = [ 20,140].*pi/180;
 rot = @(theta) [cos(theta),-sin(theta);sin(theta),cos(theta)];
 % Camera Polygon
 v0 = [9;1];
@@ -117,8 +120,8 @@ for i = 1:length(x0)
     % Rotate Poly by Theta
 %     tri_i = rot(theta(i))*tri + repmat([x0(i);y0(i)],1,size(tri,2));
 %     plot(tri_i(1,:),tri_i(2,:))
-%    poly_i = rot(theta(i))*poly + repmat([x0(i);y0(i)],1,size(poly,2));
-%    plot(poly_i(1,:),poly_i(2,:),'-m')
+   poly_i = rot(theta(i))*poly + repmat([x0(i);y0(i)],1,size(poly,2));
+   plot(poly_i(1,:),poly_i(2,:),'-m')
 %     waitforbuttonpress
     
 end
