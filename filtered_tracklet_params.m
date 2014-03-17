@@ -18,7 +18,7 @@ orthog = V(:,2);
 
 x = centroid(1);
 y = centroid(2);
-delta_t = size(tracklet.path,1) - 1;
+delta_t = tracklet.path(end,3)-tracklet.path(1,3);
 t = tracklet.first_time + delta_t/2;
 
 theta = atan2(direction(2), direction(1));
