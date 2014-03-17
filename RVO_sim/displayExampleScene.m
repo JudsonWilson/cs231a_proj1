@@ -95,9 +95,9 @@ hold off
 % 17,17,45;
 % 27,33,225;
 % 27,17,90;
-x0 =    [ 27, 17, 21, 27, 32, 38, 67, 50, 50, 50, 50, 57, 57, 73, 73, 81, 81];
-y0 =    [ 33, 17, 17, 33, 17, 33, 17, 17, 33, 17, 33, 17, 33, 17, 33, 17, 33];
-theta = [225, 45, 20,-20, 20,-20,160, 20,-20, 20,-20, 20,-20, 20,-20, 20,-20].*pi/180;
+x0 =    [ 27, 17, 38, 21, 27, 32, 38, 67, 50, 50, 50, 50, 57, 57, 73, 73, 81, 81];
+y0 =    [ 33, 17, 17, 17, 33, 17, 33, 17, 17, 33, 17, 33, 17, 33, 17, 33, 17, 33];
+theta = [225, 45,140, 20,-20, 20,-20,160, 20,-20, 20,-20, 20,-20, 20,-20, 20,-20].*pi/180;
 rot = @(theta) [cos(theta),-sin(theta);sin(theta),cos(theta)];
 % Camera Polygon
 v0 = [9;1];
@@ -117,8 +117,8 @@ for i = 1:length(x0)
     % Rotate Poly by Theta
 %     tri_i = rot(theta(i))*tri + repmat([x0(i);y0(i)],1,size(tri,2));
 %     plot(tri_i(1,:),tri_i(2,:))
-    poly_i = rot(theta(i))*poly + repmat([x0(i);y0(i)],1,size(poly,2));
-    plot(poly_i(1,:),poly_i(2,:),'-m')
+%    poly_i = rot(theta(i))*poly + repmat([x0(i);y0(i)],1,size(poly,2));
+%    plot(poly_i(1,:),poly_i(2,:),'-m')
 %     waitforbuttonpress
     
 end
