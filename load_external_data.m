@@ -168,6 +168,33 @@ function [correspondences, ground_truth,dt] ...
     
     % Make Ground_Truth -> Send to empty array
     ground_truth.cameras = [];
+
+    % change the camera numbers to (1..num_cams)
+    max_cam = 0;
+    cams = [];
+
+    % build a unique set of camera numbers, get the max camera number
+    for i=1:length(correspondences.tracklets_cam_coords)
+      cam = correspondences.tracklets_cam_coords{i}.cam_num;
+      if(~ismember(cam, cams))
+        cams = [cams; cam];
+      end
+      if(cam > max_cam)
+        max_cam = cam;
+      end
+    end
+
+    % cam_map(old camera number) = new camera number
+    cam_map = zeros(max_cam,1);
+    for i=1:size(cams,1)
+      cam_map(cams(i)) = i;
+    end
+
+    % change old camera numbers to new camera numbers
+    for i=1:length(correspondences.tracklets_cam_coords)
+      cam = correspondences.tracklets_cam_coords{i}.cam_num;
+      correspondences.tracklets_cam_coords{i}.cam_num = cam_map(cam);
+    end
     
     disp('Completed Correspondences')
 end
