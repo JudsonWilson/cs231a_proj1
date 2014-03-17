@@ -1,6 +1,6 @@
 # 0 - Sim Details
 Timestep=0.025
-LengthOfSim=4000
+LengthOfSim=7200
 
 # 1 - Agent Details
 radius = 0.25
