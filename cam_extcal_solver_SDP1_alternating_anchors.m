@@ -34,6 +34,12 @@ solved_cam_positions_unreflected ...
         = cam_pos_solver_SDP1_alternating_anchors( ...
                                          num_cameras, ...
                                          camera_distance_estimates );
+%Return empty if unconnected
+if isempty(solved_cam_positions_unreflected)
+    solved_cam_positions = [];
+    solved_cam_angles = [];
+    return;
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Use the angle averaging technique to solve angles.

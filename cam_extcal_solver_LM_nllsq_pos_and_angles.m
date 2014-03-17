@@ -45,6 +45,12 @@ glob_camera_angle_estimates = camera_angle_estimates;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 start_locations_unreflected = cam_pos_solver_MDS_MAP(num_cameras, ...
                                            camera_distance_estimates );
+%Return empty if unconnected
+if isempty(start_locations_unreflected)
+    solved_cam_positions = [];
+    solved_cam_angles = [];
+    return;
+end
 
 start_locations_reflected = start_locations_unreflected;
 start_locations_reflected(:,1) = -start_locations_reflected(:,1);

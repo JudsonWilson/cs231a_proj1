@@ -1,5 +1,6 @@
 function [ individual_tracklets_cam_coords, correspondences, tracks_with_tracklets_world_coords ] ...
-  = generate_tracklets_advanced( cameras, num_correspondences, objects_start_speed, ...
+  = generate_tracklets_advanced( cameras, num_tracks_to_make,...
+       objects_start_speed, ...
        shape_noise_factor, measurement_noise_factor, ... 
        track_coincidence_percentiles, fraction_singles_not_pairs)
 %GENERATE_TRACKLETS_ADVANCED Walk objects somewhat randomly in tracks.
@@ -41,17 +42,17 @@ average_track_time = 0;
 % tracklets (some tracks are outside all camera FOVs, ignore them).
 %
 tracks_made = 0;
-while size(correspondences_final) < num_correspondences
+while tracks_made < num_tracks_to_make
     % Randomly pick the number of tracks that we want at the same time,
     % according to our global settings above: 
     %      track_coincidence_percentiles
     % Will be something like 1,2,3...
     num_tracks_in_time_window ...
          = find(rand(1) < track_coincidence_percentiles, 1);
-%    % Only use as many tracks as are requested
-%    tracks_remaining = num_tracks - tracks_made;
-%    num_tracks_in_time_window = min(num_tracks_in_time_window, ...
-%                                    tracks_remaining);
+    % Only use as many tracks as are requested
+    tracks_remaining = num_tracks_to_make - tracks_made;
+    num_tracks_in_time_window = min(num_tracks_in_time_window, ...
+                                    tracks_remaining);
 
     %Choose which of the tracks in the time window come from single
     %tracklets (viewed from only one camera), and those from pairs
@@ -97,7 +98,8 @@ while size(correspondences_final) < num_correspondences
     % that we get a random (false) correspondence.
 
     correspondance_list_array = [];
-    
+
+    %Use up the tracks in the time window
     for track_num_in_correspondence=1:num_tracks_in_time_window
         %Take a track from the single or pairs pool.
         if single_tracks_logical(track_num_in_correspondence) == 1
@@ -134,6 +136,8 @@ while size(correspondences_final) < num_correspondences
         end
         %Add this track to the output list
         tracks_with_tracklets_world_coords_final{end+1} = temp_track;
+        %Update count
+        tracks_made = tracks_made + 1;
     end
 
     correspondences_final{end+1} = correspondance_list_array;
