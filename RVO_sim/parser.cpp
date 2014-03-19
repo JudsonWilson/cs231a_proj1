@@ -248,7 +248,7 @@ int getCameraLocations(string line,
     char thisChar;
     float thisNum;
     string delimiters = ",;";
-    string nums = "0123456789.";
+    string nums = "-+0123456789.";
     
     // Loop through each character of the string
     while (ind < line.size()) {

@@ -347,7 +347,7 @@ int setupScenario(RVO::RVOSimulator* sim,
             }
             cout << endl;
         }
-         */
+        */
     }
     
     // Return
@@ -363,6 +363,36 @@ int getEntranceIndex(int numEntrances)
     // Compute Entrance Index
     int entranceIndex = (int) (numEntrances*randomNum + 0.5);
     
+//    cout << "\n New Line" << endl;
+//    switch (entranceIndex) {
+//        case 0:
+//            cout << "Got a 0 entrance - " << randomNum << " " << numEntrances*randomNum << " " << entranceIndex << endl;
+//            break;
+//        case 1:
+//            cout << "Got a 1 entrance - " << randomNum << " " << numEntrances*randomNum << " " << entranceIndex << endl;
+//            break;
+//        case 2:
+//            cout << "Got a 2 entrance - " << randomNum << " " << numEntrances*randomNum << " " << entranceIndex << endl;
+//            break;
+//        case 3:
+//            cout << "Got a 3 entrance - " << randomNum << " " << numEntrances*randomNum << " " << entranceIndex << endl;
+//            break;
+//        case 4:
+//            cout << "Got a 4 entrance - " << randomNum << " " << numEntrances*randomNum << " " << entranceIndex << endl;
+//            break;
+//        case 5:
+//            cout << "Got a 5 entrance - " << randomNum << " " << numEntrances*randomNum << " " << entranceIndex << endl;
+//            break;
+//        case 6:
+//            cout << "Got a 6 entrance - " << randomNum << " " << numEntrances*randomNum << " " << entranceIndex << endl;
+//            break;
+//        case 7:
+//            cout << "Got a 7 entrance - " << randomNum << " " << numEntrances*randomNum << " " << entranceIndex << endl;
+//            break;
+//        case 8:
+//            cout << "Got a 8 entrance - " << randomNum << " " << numEntrances*randomNum << " " << entranceIndex << endl;
+//            break;
+//    }
     // Return
     return entranceIndex;
 }
@@ -486,7 +516,7 @@ void updateVisualization(RVO::RVOSimulator* sim)
             std::cout << loc << " ";
         // Store Position and time if agent isn't at final goal
         // Position stored in decimeters and time in milliseconds
-        if (!reachedSecondaryGoal[i]) {
+        if (!reachedPrimaryGoal[i]) {
             groundTruthTracks[i].push_back(loc.x());
             groundTruthTracks[i].push_back(loc.y());
             groundTruthTracks[i].push_back(sim->getGlobalTime());
@@ -543,8 +573,8 @@ void setPreferredVelocities(RVO::RVOSimulator* sim,
     for (size_t i = 0; i < sim->getNumAgents(); i++) {
         if (reachedPrimaryGoal[i]) {
             // Agent has passed primary goal -> Headed to secondary goal
-            if (absSq(goals[i][1] - sim->getAgentPosition(i)) < (sim->getTimeStep() * sim->getAgentMaxSpeed(i)) * (sim->getTimeStep() * sim->getAgentMaxSpeed(i)) + (100*sim->getAgentRadius(i)*sim->getAgentRadius(i))) {
-                //Agent is within (max speed * timestep + 10*agent_radius) of its secondary goal, set preferred velocity to 0
+            if (absSq(goals[i][1] - sim->getAgentPosition(i)) < (sim->getTimeStep() * sim->getAgentMaxSpeed(i)) * (sim->getTimeStep() * sim->getAgentMaxSpeed(i)) + (1600*sim->getAgentRadius(i)*sim->getAgentRadius(i))) {
+                //Agent is within (max speed * timestep + 40*agent_radius) of its secondary goal, set preferred velocity to 0
                 sim->setAgentPrefVelocity(i, RVO::Vector2(0.0f, 0.0f));
                 // First time at goal, reduce number of active agents, and set reachedSecondaryGoal to TRUE
                 if (!reachedSecondaryGoal[i]) {
@@ -562,8 +592,8 @@ void setPreferredVelocities(RVO::RVOSimulator* sim,
             }
         } else {
             // Agent has not passed primary goal -> Headed to primary goal
-            if (absSq(goals[i][0] - sim->getAgentPosition(i)) < (sim->getTimeStep() * sim->getAgentMaxSpeed(i)) * (sim->getTimeStep() * sim->getAgentMaxSpeed(i)) + (100*sim->getAgentRadius(i)*sim->getAgentRadius(i))) {
-                //Agent is within (max speed * timestep + 10*agent_radius) of its primary goal, head to secondary goal
+            if (absSq(goals[i][0] - sim->getAgentPosition(i)) < (sim->getTimeStep() * sim->getAgentMaxSpeed(i)) * (sim->getTimeStep() * sim->getAgentMaxSpeed(i)) + (4*sim->getAgentRadius(i)*sim->getAgentRadius(i))) {
+                //Agent is within (max speed * timestep + 2*agent_radius) of its primary goal, head to secondary goal
                 reachedPrimaryGoal[i] = true;
                 //***************CHANGED TO INCREASE THE FREQUENCY OF AGENTS*************************
                 numActiveAgents -= 1;
@@ -743,29 +773,29 @@ int writeTracks(char* outFilename)
     cout << 3*(maxVectorLen+1) << endl;
     // *** Write to file ***
     // Write ground truth to <filename>.csv
-    ofstream groundOutFile;
-    string groundOutFilenameString;
-    groundOutFilenameString.append("./data/");
-    groundOutFilenameString.append(outFilename);
-    groundOutFilenameString.append(".csv");
-    // Open file
-    groundOutFile.open(groundOutFilenameString,ios::trunc);
-    if (groundOutFile.is_open()) {
-        // Write Tracks to file
-        for (size_t trackInd = 0; trackInd < groundTruthTracks.size(); trackInd++) {
-            for (size_t j = 0; j < groundTruthTracks[trackInd].size(); j++) {
-                groundOutFile << groundTruthTracks[trackInd][j];
-                if (trackInd != groundTruthTracks.size()-1) {
-                    groundOutFile << " ";
-                }
-            }
-            groundOutFile << "\n";
-        }
-    } else {
-        cout << "ERROR - Unable to write ground truth to " << groundOutFilenameString << endl;
-    }
-    // Close file
-    groundOutFile.close();
+//    ofstream groundOutFile;
+//    string groundOutFilenameString;
+//    groundOutFilenameString.append("./data/");
+//    groundOutFilenameString.append(outFilename);
+//    groundOutFilenameString.append(".csv");
+//    // Open file
+//    groundOutFile.open(groundOutFilenameString,ios::trunc);
+//    if (groundOutFile.is_open()) {
+//        // Write Tracks to file
+//        for (size_t trackInd = 0; trackInd < groundTruthTracks.size(); trackInd++) {
+//            for (size_t j = 0; j < groundTruthTracks[trackInd].size(); j++) {
+//                groundOutFile << groundTruthTracks[trackInd][j];
+//                if (trackInd != groundTruthTracks.size()-1) {
+//                    groundOutFile << " ";
+//                }
+//            }
+//            groundOutFile << "\n";
+//        }
+//    } else {
+//        cout << "ERROR - Unable to write ground truth to " << groundOutFilenameString << endl;
+//    }
+//    // Close file
+//    groundOutFile.close();
     
     // *** Write Camera files to <filename>_cam<cam_id>.csv ***
     for (size_t i = 0; i < cameraTracks.size(); i++) {
