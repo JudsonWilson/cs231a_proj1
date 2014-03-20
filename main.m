@@ -88,6 +88,14 @@ end
 esitmate_plot_fov_poly.x = [0 20 20 0];
 esitmate_plot_fov_poly.y = [0 -6  6 0];
 
+%Below are hand estimated polygons for the train station cameras made
+%by tracing around plots of all tracklets in a few cameras.
+%They aren't exact, and every camera is a little different, but they
+%are good for making plots.
+%
+%esitmate_plot_fov_poly.x = [ 90 175 175  90  90];
+%esitmate_plot_fov_poly.y = [340 295 405 360 340];
+
 if isempty(data_filename)
     %Create an array of camera structs.
     temp_cameras = generate_fake_groundtruth_cameras(1);
