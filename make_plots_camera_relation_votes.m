@@ -22,27 +22,27 @@ rstr  = ['r_{' s1 ',' s2 '}'];
 t1str = ['\theta_{' s1 '|' s1 ',' s2 '}'];
 t2str = ['\theta_{' s2 '|' s1 ',' s2 '}'];
 
-formatstring_used    = '.b'; %for the points we used
-formatstring_notused = '.g'; %for the points we didn't use
+formatstring_used    = '.k'; %for the points we used
+formatstring_notused = 'ob'; %for the points we didn't use
 
 subplot(2,2,1)
 hold on;
+plot(relation_votes_notused(:,1), relation_votes_notused(:,2),formatstring_notused,'markers',4);
 plot(relation_votes_used   (:,1), relation_votes_used   (:,2),formatstring_used);
-plot(relation_votes_notused(:,1), relation_votes_notused(:,2),formatstring_notused);
 xlabel(t1str); ylabel(rstr);
 ax = axis; ax([1,2,3]) = [-pi, pi, 0    ]; axis(ax);
 
 subplot(2,2,2)
 hold on;
+plot(relation_votes_notused(:,2), relation_votes_notused(:,3),formatstring_notused,'markers',4);
 plot(relation_votes_used   (:,2), relation_votes_used   (:,3),formatstring_used);
-plot(relation_votes_notused(:,2), relation_votes_notused(:,3),formatstring_notused);
 xlabel(rstr); ylabel(t2str);
 ax = axis; ax([1 3 4]) = [0,    -pi, pi]; axis(ax);
 
 subplot(2,2,3)
 hold on;
+plot(relation_votes_notused(:,3), relation_votes_notused(:,1),formatstring_notused,'markers',4);
 plot(relation_votes_used   (:,3), relation_votes_used   (:,1),formatstring_used);
-plot(relation_votes_notused(:,3), relation_votes_notused(:,1),formatstring_notused);
 xlabel(t2str); ylabel(t1str);
 ax = [-pi, pi, -pi, pi]; axis(ax);
 
@@ -53,7 +53,7 @@ plot3(relation_votes_used   (:,1), ...
       relation_votes_used   (:,3),formatstring_used);
 plot3(relation_votes_notused(:,1), ...
       relation_votes_notused(:,2), ...
-      relation_votes_notused(:,3),formatstring_notused);
+      relation_votes_notused(:,3),formatstring_notused,'markers',4);
 xlabel(t1str); ylabel(rstr); zlabel(t2str);
 ax = axis; ax([1 2 3 5 6]) = [-pi, pi, 0,   -pi, pi]; axis(ax);
 

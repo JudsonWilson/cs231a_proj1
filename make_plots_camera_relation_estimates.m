@@ -18,25 +18,25 @@ plot_format_str = 'xr';
 
 subplot(2,2,1)
 hold on;
-plot(theta1, r, plot_format_str);
+plot(theta1, r, plot_format_str,'markers',12,'LineWidth', 2);
 xlabel(t1str); ylabel(rstr);
 ax = axis; ax([1,2,3]) = [-pi, pi, 0    ]; axis(ax);
 
 subplot(2,2,2)
 hold on;
-plot(r, theta2, plot_format_str);
+plot(r, theta2, plot_format_str,'markers',12,'LineWidth', 2);
 xlabel(rstr); ylabel(t2str);
 ax = axis; ax([1 3 4]) = [0,    -pi, pi]; axis(ax);
 
 subplot(2,2,3)
 hold on;
-plot(theta2, theta1, plot_format_str);
+plot(theta2, theta1, plot_format_str,'markers',12,'LineWidth', 2);
 xlabel(t2str); ylabel(t1str);
 ax = [-pi, pi, -pi, pi]; axis(ax);
 
 subplot(2,2,4)
 hold on;
-plot3(theta1, r, theta2, 'xr');
+plot3(theta1, r, theta2, plot_format_str,'markers',12,'LineWidth', 2);
 xlabel(t1str); ylabel(rstr); zlabel(t2str);
 ax = axis; ax([1 2 3 5 6]) = [-pi, pi, 0,   -pi, pi]; axis(ax);
 
