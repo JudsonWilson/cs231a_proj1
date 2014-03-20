@@ -1,6 +1,6 @@
 function [correspondences, ground_truth,dt] ...
             = load_external_data(filename, ...
-                                 corr_window_len)
+                                 corr_window_len_milliseconds)
 %
 %
 % Outputs:
@@ -123,10 +123,11 @@ function [correspondences, ground_truth,dt] ...
     
     disp('Making Correspondences')
     tmp = [];
+    corr_window_len_ticks = corr_window_len_milliseconds / dt;
     % Come up with correspondences by window length
-    for i = 1:length(t)-corr_window_len
+    for i = 1:length(t)-corr_window_len_ticks
         % Get Bins correspoinding to this window
-        bins_arr = [bins{i:i+corr_window_len-1}];
+        bins_arr = [bins{i:i+corr_window_len_ticks-1}];
         
         % Skip Empty Windows
         if (isempty(bins_arr))
