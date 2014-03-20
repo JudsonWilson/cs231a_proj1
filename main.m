@@ -143,7 +143,15 @@ figure(3); clf; hold on;
 if exist('ground_truth') &&~isempty(ground_truth) && ~isempty(ground_truth.cameras)
     % Show the cameras
     for c = 1:length(ground_truth.cameras)
-        plot_poly(ground_truth.cameras(c).gen.fov_poly_world);
+        %plot_poly(ground_truth.cameras(c).gen.fov_poly_world);
+
+        %use a dotted line
+        poly = ground_truth.cameras(c).gen.fov_poly_world;
+        x = poly.x(:);
+        x = [x; x(1)];
+        y = poly.y(:);
+        y = [y; y(1)];
+        plot(x,y,'--');
     end
 
     %Plot a bound-box
