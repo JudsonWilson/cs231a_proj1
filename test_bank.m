@@ -12,14 +12,15 @@ addpath('./lib/LMFnlsq/');
 
 %We loop over every combination of these, if we choose this bank
 test_files_bank_1 = {...
-              'test_bank/simple_sim_cc1_n0_ocp_1p0_50t.mat'; %noiseless example
+              'test_bank/simple_sim_cc1_n0_ocp_1p0_100t.mat'; %noisless example - high connectivity
+              'test_bank/simple_sim_cc1_n0_ocp_1p0_50t.mat'; %noiseless example - low connectivity
               'test_bank/simple_sim_cc1_ncf0_on1_ocp_1p0_400t.mat'; %noisy straight path, no false correspondences
               'test_bank/simple_sim_cc1_n0p2_ocp_1p0_400t.mat'; %low noise / curvy path, no false correspondences
               'test_bank/simple_sim_cc1_n1_ocp_1p0_400t.mat'; %higher noisy / curvy path, no false correspondences
               'test_bank/simple_sim_cc1_n1_ocp_0p3_0p7_1p0_100t.mat';  %Standard - 100 tracks
               'test_bank/simple_sim_cc1_n1_ocp_0p3_0p7_1p0_400t.mat';  %Standard - 400 tracks
               'test_bank/simple_sim_cc1_n1_ocp_0p3_0p7_1p0_1600t.mat'; %Standard - 1600 tracks
-              'test_bank/simple_sim_cc1_n1_ocp_upto10_1600t.mat'; %Up to 10 tracks in same window
+%              'test_bank/simple_sim_cc1_n1_ocp_upto10_1600t.mat'; %Up to 10 tracks in same window
 };
 
 test_files_bank_2 = {
@@ -35,8 +36,23 @@ test_files_bank_2 = {
               %'test_bank/simple_sim_cc1_n1_ocp_upto10_0p8decay_1600t.mat';
 };
 
+test_files_bank_christian = {
+             %'christian_data/15_3_cams.mat'
+             %'christian_data/15_overlap.mat'
+             %'christian_data/5_no_overlap.mat'
+             'christian_data/single_5_cams.mat'
+             'christian_data/15_5_cams.mat'
+             %'christian_data/5_3_cams.mat'
+             %'christian_data/5_overlap.mat'
+             %'christian_data/single_no_overlap.mat'
+             %'christian_data/15_no_overlap.mat'
+             'christian_data/5_5_cams.mat'
+             %'christian_data/single_3_cams.mat'
+             %'christian_data/single_overlap.mat'
+};
+
 %Choose a bank!
-test_files = test_files_bank_2;
+test_files = test_files_bank_1;
 
 test_algos = {'MDS-MAP', 'SDP', 'LM-nllsq-PaA'};
 
