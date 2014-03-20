@@ -140,7 +140,7 @@ make_plots_camera_relation_estimates(camera_relation_votes_and_centers, 1, 2);
 
 figure(3); clf; hold on;
 
-if ~isempty(ground_truth) && ~isempty(ground_truth.cameras)
+if exist('ground_truth') &&~isempty(ground_truth) && ~isempty(ground_truth.cameras)
     % Show the cameras
     for c = 1:length(ground_truth.cameras)
         plot_poly(ground_truth.cameras(c).gen.fov_poly_world);
@@ -158,7 +158,7 @@ end
 
 %come up with camera coodinates
 
-if ~isempty(ground_truth) && ~isempty(ground_truth.cameras)
+if exist('ground_truth') && ~isempty(ground_truth) && ~isempty(ground_truth.cameras)
     groundtruth_locations = -ones(length(ground_truth.cameras),2);
     for c=1:length(ground_truth.cameras)
         groundtruth_locations(c,1) = ground_truth.cameras(c).calib.x;
@@ -172,7 +172,7 @@ for c=1:length(estimated_cameras)
     estimated_locations(c,2) = estimated_cameras(c).calib.y;
 end
 
-if ~isempty(ground_truth) && ~isempty(ground_truth.cameras)
+if exist('ground_truth') && ~isempty(ground_truth) && ~isempty(ground_truth.cameras)
     %Use the procrustes transform to get the best alignment without scaling
     % or reflection. Also do it on the reflection of the points and print
     % their values. Useful to see if we chose the correct reflection or not.
