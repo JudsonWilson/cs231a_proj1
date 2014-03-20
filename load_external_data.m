@@ -126,6 +126,9 @@ function [correspondences, ground_truth,dt] ...
     corr_window_len_ticks = corr_window_len_milliseconds / dt;
     % Come up with correspondences by window length
     for i = 1:length(t)-corr_window_len_ticks
+        if (mod(i,1000) == 1)
+            disp(sprintf('Corresponding %d of %d windows',i,length(t)-corr_window_len))
+        end
         % Get Bins correspoinding to this window
         bins_arr = [bins{i:i+corr_window_len_ticks-1}];
         

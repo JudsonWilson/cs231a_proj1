@@ -16,7 +16,7 @@ clear; clc;
 %                 generate_fake_groundtruth_cameras.
 %
 
-data_filename = [];
+data_filename = ['overlap_data2.mat'];
 %data_filename = 'test_data.mat';
 
 %
@@ -85,8 +85,12 @@ end
 
 %This polygon is used for plotting the final result, NOT for anything
 %related to generating/interpretting data.
-esitmate_plot_fov_poly.x = [0 20 20 0];
-esitmate_plot_fov_poly.y = [0 -6  6 0];
+v0 = [9;1];
+v1 = [17.5;5.5];
+v2 = [17.5;-5.5];
+v3 = [9;-1];
+esitmate_plot_fov_poly.x = [9 17.5 17.5  9 9]; %[0 20 20 0];
+esitmate_plot_fov_poly.y = [1  5.5 -5.5 -1 1]; %[0 -6  6 0];
 
 %Below are hand estimated polygons for the train station cameras made
 %by tracing around plots of all tracklets in a few cameras.
@@ -129,10 +133,10 @@ end
 %   so calculate both, then pick the one that gives the best angles.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
-algo = 'MDS-MAP';
+%algo = 'MDS-MAP';
 %algo = 'SDP';
 %algo = 'LM-nllsq-PtA'; %Positions THEN Angles (probably don't use)
-%algo = 'LM-nllsq-PaA'; %Positions AND Angles
+algo = 'LM-nllsq-PaA'; %Positions AND Angles
 
 [estimated_cameras, costs, camera_relation_votes_and_centers] ...
     = solve_cameras_extcal(correspondences, algo);
